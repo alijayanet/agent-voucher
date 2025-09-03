@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Agent - Voucher WiFi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: #495057 !important;
+        }
+
+        .stat-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            opacity: 0.8;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+
+        .card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+        }
+
+        .agent-info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .quick-action-card {
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .loading-spinner {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        .agent-only {
+            display: block;
+        }
+
+        .admin-only {
+            display: none;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .stat-card {
+                margin-bottom: 15px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+                font-size: 0.9rem;
+                padding: 8px 16px;
+            }
+
+            /* Agent info card mobile */
+            .agent-info-card .row {
+                text-align: center;
+            }
+
+            .agent-info-card .avatar-circle {
+                margin: 0 auto 15px;
+            }
+
+            /* Quick actions mobile */
+            .quick-action-card {
+                margin-bottom: 15px;
+            }
+
+            /* Modal mobile */
+            .modal-dialog {
+                margin: 10px;
+                max-width: calc(100vw - 20px);
+            }
+
+            .modal-body {
+                padding: 15px;
+            }
+
+            /* Table mobile */
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+
+            .table td, .table th {
+                padding: 8px 4px;
+                white-space: nowrap;
+            }
+
+            /* Voucher result mobile */
+            .otp-input input {
+                width: 35px;
+                height: 35px;
+                margin: 0 2px;
+                font-size: 1rem;
+            }
+
+            /* Stats cards mobile */
+            .stat-icon {
+                font-size: 1.5rem;
+            }
+
+            .card-title {
+                font-size: 0.9rem;
+            }
+
+            .h3, h3 {
+                font-size: 1.5rem;
+            }
+
+            /* Agent name mobile */
+            #agentName {
+                font-size: 1.3rem;
+            }
+
+            /* Hide some elements on very small screens */
+            @media (max-width: 576px) {
+                .navbar-toggler {
+                    padding: 4px 6px;
+                }
+
+                .stat-card .d-flex {
+                    flex-direction: column;
+                    text-align: center;
+                }
+
+                .stat-icon {
+                    margin-bottom: 10px;
+                }
+
+                /* Make table scroll horizontally */
+                .table-responsive {
+                    max-width: 100%;
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                .table {
+                    min-width: 600px;
+                }
+
+                /* Stack modal content vertically */
+                .modal-body .row > div {
+                    margin-bottom: 15px;
+                }
+
+                /* Smaller buttons */
+                .btn-sm {
+                    padding: 6px 12px;
+                    font-size: 0.8rem;
+                }
+
+                /* Hide navbar brand text on very small screens */
+                .navbar-brand span:not(.fa) {
+                    display: none;
+                }
+            }
+        }
+
+        /* Touch-friendly elements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 44px;
+                padding: 12px 16px;
+            }
+
+            .form-control {
+                min-height: 44px;
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+
+            .nav-link {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .card {
+                border: 2px solid;
+            }
+
+            .btn-primary {
+                border: 2px solid;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .stat-card, .quick-action-card {
+                transition: none;
+            }
+
+            .btn-primary:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-user-tie me-2"></i>
+                Dashboard Agent
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#orders">
+                            <i class="fas fa-shopping-cart me-1"></i>Order Saya
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#reports">
+                            <i class="fas fa-chart-line me-1"></i>Laporan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#profile">
+                            <i class="fas fa-user me-1"></i>Profil
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><span id="currentUserName">Agent</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showProfile()"><i class="fas fa-user-edit me-2"></i>Edit Profil</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showChangePassword()"><i class="fas fa-key me-2"></i>Ubah Password</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard Agent</h2>
+                    <p class="text-muted">Pantau performa dan aktivitas Anda</p>
+                </div>
+            </div>
+
+            <!-- Agent Info Card -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card agent-info-card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    <div class="avatar-circle mx-auto mb-3">
+                                        <i class="fas fa-user-tie fa-3x"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-10">
+                                    <h4 id="agentName">-</h4>
+                                    <p class="mb-2" id="agentPhone">-</p>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <small class="text-white-50">Saldo</small>
+                                            <div class="h5 mb-0" id="agentBalance">Rp 0</div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-white-50">Status</small>
+                                            <div class="h5 mb-0">
+                                                <span class="badge bg-success" id="agentStatus">Aktif</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-white-50">Bergabung</small>
+                                            <div class="h6 mb-0" id="agentJoinDate">-</div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-white-50">Login Terakhir</small>
+                                            <div class="h6 mb-0" id="agentLastLogin">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Order Hari Ini</h6>
+                                    <h3 class="mb-0" id="todayOrders">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Pendapatan Hari Ini</h6>
+                                    <h3 class="mb-0" id="todayRevenue">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Order Bulan Ini</h6>
+                                    <h3 class="mb-0" id="monthlyOrders">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Komisi Bulan Ini</h6>
+                                    <h3 class="mb-0" id="monthlyCommission">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Aksi Cepat</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card quick-action-card border-success">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-wallet fa-2x text-success mb-3"></i>
+                                            <h6 class="card-title">Request Deposit</h6>
+                                            <p class="card-text small">Minta top-up saldo ke admin</p>
+                                            <button class="btn btn-success btn-sm" onclick="showRequestDepositModal()">
+                                                <i class="fas fa-plus me-1"></i>Request Saldo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <div class="card quick-action-card border-primary">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-ticket-alt fa-2x text-primary mb-3"></i>
+                                            <h6 class="card-title">Generate Voucher</h6>
+                                            <p class="card-text small">Buat voucher baru langsung</p>
+                                            <button class="btn btn-primary btn-sm" onclick="showGenerateVoucherModal()">
+                                                <i class="fas fa-plus me-1"></i>Generate
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card quick-action-card border-info">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-chart-line fa-2x text-info mb-3"></i>
+                                            <h6 class="card-title">Laporan Detail</h6>
+                                            <p class="card-text small">Lihat laporan performa lengkap</p>
+                                            <button class="btn btn-info btn-sm" onclick="showReports()">
+                                                <i class="fas fa-eye me-1"></i>Lihat Laporan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Order Terbaru</h5>
+                            <button class="btn btn-sm btn-outline-primary" onclick="refreshOrders()">
+                                <i class="fas fa-sync me-1"></i>Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="loadingSpinner" class="loading-spinner">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="table-responsive" id="ordersTableContainer">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID Order</th>
+                                            <th>Tanggal</th>
+                                            <th>Customer</th>
+                                            <th>Nomor HP</th>
+                                            <th>Voucher</th>
+                                            <th>Jumlah</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentOrdersTable">
+                                        <tr>
+                                            <td colspan="9" class="text-center">
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                Memuat data...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="orders" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-shopping-cart me-2"></i>Order Saya</h2>
+                    <p class="text-muted">Daftar semua order yang telah dibuat</p>
+                </div>
+            </div>
+
+            <!-- Orders table will be loaded here -->
+            <div id="ordersContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Memuat data order...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-chart-line me-2"></i>Laporan</h2>
+                    <p class="text-muted">Laporan performa dan statistik Anda</p>
+                </div>
+            </div>
+
+            <!-- Reports content will be loaded here -->
+            <div id="reportsContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Memuat laporan...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-user me-2"></i>Profil Agent</h2>
+                    <p class="text-muted">Kelola informasi profil Anda</p>
+                </div>
+            </div>
+
+            <!-- Profile content will be loaded here -->
+            <div id="profileContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Memuat profil...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate Voucher Modal -->
+    <div class="modal fade" id="generateVoucherModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-ticket-alt me-2"></i>Generate Voucher Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="generateVoucherForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="voucherProfileSelect" class="form-label">Pilih Profil Voucher *</label>
+                                    <select class="form-control" id="voucherProfileSelect" required onchange="onProfileChange()">
+                                        <option value="">Pilih profil voucher...</option>
+                                    </select>
+                                    <div class="form-text">Pilih profil yang akan digunakan untuk voucher</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="voucherQuantity" class="form-label">Jumlah Voucher *</label>
+                                    <input type="number" class="form-control" id="voucherQuantity" min="1" max="10" value="1" required>
+                                    <div class="form-text">Maksimal 10 voucher per generasi</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="customerName" class="form-label">Nama Customer</label>
+                                    <input type="text" class="form-control" id="customerName" placeholder="Opsional - kosongkan jika untuk stok">
+                                    <div class="form-text">Opsional: Kosongkan jika voucher untuk stok</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="customerPhone" class="form-label">Nomor WhatsApp Customer</label>
+                                    <input type="tel" class="form-control" id="customerPhone" placeholder="628xxxxxxxxxx" onblur="validateCustomerPhone()">
+                                    <div class="form-text">Opsional: Isi untuk otomatis kirim voucher ke customer</div>
+                                    <div id="phoneValidationFeedback" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div id="profileDetails" class="card bg-light" style="display: none;">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Detail Profil</h6>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small class="text-muted">Durasi:</small>
+                                                <div class="fw-bold" id="profileDuration">-</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Harga:</small>
+                                                <div class="fw-bold" id="profilePrice">Rp 0</div>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small class="text-muted">Total Voucher:</small>
+                                                <div class="fw-bold" id="totalVouchers">1</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">Total Biaya:</small>
+                                                <div class="fw-bold text-success" id="totalCost">Rp 0</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Informasi:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Voucher akan langsung dibuat di Mikrotik</li>
+                                        <li>Username & password akan otomatis generated</li>
+                                        <li>Saldo agent akan dikurangi sesuai biaya</li>
+                                        <li>Voucher siap digunakan setelah generate</li>
+                                        <li><strong>Baru:</strong> Jika nomor WhatsApp diisi, voucher otomatis terkirim</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Batal
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="generateVoucher()">
+                        <i class="fas fa-ticket-alt me-1"></i>Generate Voucher
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Deposit Modal -->
+    <div class="modal fade" id="requestDepositModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-wallet me-2"></i>Request Deposit Saldo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="requestDepositForm">
+                        <div class="mb-3">
+                            <label for="depositAmount" class="form-label">Jumlah Deposit *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control" id="depositAmount" required min="10000" step="1000" placeholder="100000">
+                            </div>
+                            <div class="form-text">Minimal deposit Rp 10.000</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="paymentMethod" class="form-label">Metode Pembayaran *</label>
+                            <select class="form-control" id="paymentMethod" required>
+                                <option value="">Pilih metode pembayaran</option>
+                                <option value="transfer_bank">Transfer Bank</option>
+                                <option value="cash">Cash/Tunai</option>
+                                <option value="emoney">E-Money (OVO/DANA/GoPay)</option>
+                                <option value="crypto">Cryptocurrency</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="depositNotes" class="form-label">Catatan</label>
+                            <textarea class="form-control" id="depositNotes" rows="3" placeholder="Tuliskan informasi tambahan, nomor rekening pengirim, atau detail lainnya..."></textarea>
+                            <div class="form-text">Opsional: Informasi yang membantu admin memproses request</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="urgentRequest" class="form-label">Prioritas</label>
+                            <select class="form-control" id="urgentRequest">
+                                <option value="normal">Normal</option>
+                                <option value="urgent">Urgent (dalam 1 jam)</option>
+                                <option value="asap">ASAP (segera)</option>
+                            </select>
+                            <div class="form-text">Pilih prioritas sesuai kebutuhan</div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Informasi:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Request akan dikirim ke admin via WhatsApp</li>
+                                <li>Admin akan memproses dalam 1-24 jam</li>
+                                <li>Anda akan mendapat notifikasi status update</li>
+                                <li>Saldo otomatis bertambah setelah approved</li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Batal
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="submitDepositRequest()">
+                        <i class="fas fa-paper-plane me-1"></i>Kirim Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voucher Result Modal -->
+    <div class="modal fade" id="voucherResultModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-check-circle text-success me-2"></i>Voucher Berhasil Dibuat!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="voucherResultContent">
+                        <!-- Voucher results will be displayed here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Tutup
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="printVouchers()">
+                        <i class="fas fa-print me-1"></i>Print Voucher
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="downloadVouchers()">
+                        <i class="fas fa-download me-1"></i>Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let currentSection = 'dashboard';
+        let currentUser = null;
+        let authToken = null;
+        let lastGeneratedVouchers = []; // Store last generated voucher IDs for printing
+
+        // API base URL
+        const API_BASE = '/api';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 Agent Dashboard loaded!');
+            checkAuth();
+        });
+
+        // Check authentication
+        async function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'agent-login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.user.role === 'agent') {
+                    authToken = token;
+                    currentUser = result.user;
+                    document.getElementById('currentUserName').textContent = result.user.full_name;
+                    loadDashboard();
+                } else {
+                    localStorage.removeItem('authToken');
+                    window.location.href = 'agent-login.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                localStorage.removeItem('authToken');
+                window.location.href = 'agent-login.html';
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                // Load agent info
+                loadAgentInfo();
+
+                // Load statistics
+                loadStatistics();
+
+                // Load recent orders
+                loadRecentOrders();
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showAlert('Error loading dashboard data', 'danger');
+            }
+        }
+
+        // Load agent information
+        async function loadAgentInfo() {
+            try {
+                // Load from dashboard API for most up-to-date data
+                const response = await fetch(`${API_BASE}/agent/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const dashboardData = await response.json();
+                    if (dashboardData.success) {
+                        const agent = dashboardData.data.agent;
+
+                        document.getElementById('agentName').textContent = agent.full_name || 'Agent';
+                        document.getElementById('agentPhone').textContent = agent.phone ? `+${agent.phone}` : '-';
+                        document.getElementById('agentBalance').textContent = formatCurrency(agent.balance || 0);
+                        document.getElementById('agentStatus').textContent = agent.is_active ? 'Aktif' : 'Non-aktif';
+                        document.getElementById('agentJoinDate').textContent = formatDate(agent.created_at);
+                        document.getElementById('agentLastLogin').textContent = formatDate(agent.last_login);
+                    } else {
+                        console.warn('Dashboard API returned error:', dashboardData.message);
+                        // Fallback to currentUser data
+                        fallbackToCurrentUser();
+                    }
+                } else {
+                    console.warn('Dashboard API request failed:', response.status);
+                    // Fallback to currentUser data
+                    fallbackToCurrentUser();
+                }
+            } catch (error) {
+                console.error('Error loading agent info:', error);
+                // Fallback to currentUser data
+                fallbackToCurrentUser();
+            }
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                // Load dashboard data from agent endpoint
+                const dashboardResponse = await fetch(`${API_BASE}/agent/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (dashboardResponse.ok) {
+                    const dashboardData = await dashboardResponse.json();
+                    if (dashboardData.success) {
+                        const stats = dashboardData.data.statistics;
+
+                        // Update today's stats
+                        document.getElementById('todayOrders').textContent = stats.today.total_orders || 0;
+                        document.getElementById('todayRevenue').textContent = formatCurrency(stats.today.total_amount || 0);
+
+                        // Update monthly stats
+                        document.getElementById('monthlyOrders').textContent = stats.monthly.total_orders || 0;
+                        document.getElementById('monthlyCommission').textContent = formatCurrency(stats.monthly.total_amount || 0);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Load recent orders
+        async function loadRecentOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/agent/dashboard`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const dashboardData = await response.json();
+                    if (dashboardData.success) {
+                        displayRecentOrders(dashboardData.data.recentOrders);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading recent orders:', error);
+            }
+        }
+
+        // Display recent orders
+        function displayRecentOrders(orders) {
+            const tbody = document.getElementById('recentOrdersTable');
+
+            if (!orders || orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center">Belum ada order</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${formatDate(order.created_at)}</td>
+                    <td>${order.customer_name || '-'}</td>
+                    <td>${order.customer_phone || '-'}</td>
+                    <td>${order.voucher_count || 1}</td>
+                    <td>${order.voucher_count || 1}</td>
+                    <td>${formatCurrency(order.amount)}</td>
+                    <td><span class="badge bg-success">${order.status}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-primary" title="Detail" onclick="viewOrderDetail(${order.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-success" title="Print" onclick="printOrder(${order.id})">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" title="Download" onclick="downloadOrder(${order.id})">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Navigation
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('nav-link') && e.target.getAttribute('href').startsWith('#')) {
+                e.preventDefault();
+                const sectionName = e.target.getAttribute('href').substring(1);
+                showSection(sectionName);
+            }
+        });
+
+        // Show section
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Remove active class from nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(sectionName).style.display = 'block';
+
+            // Add active class to current nav link
+            const currentLink = document.querySelector(`a[href="#${sectionName}"]`);
+            if (currentLink) {
+                currentLink.classList.add('active');
+            }
+
+            currentSection = sectionName;
+
+            // Load section content
+            loadSectionContent(sectionName);
+        }
+
+        // Load section content
+        function loadSectionContent(sectionName) {
+            switch (sectionName) {
+                case 'orders':
+                    loadOrdersSection();
+                    break;
+                case 'reports':
+                    loadReportsSection();
+                    break;
+                case 'profile':
+                    loadProfileSection();
+                    break;
+            }
+        }
+
+        // Load orders section
+        async function loadOrdersSection() {
+            try {
+                const response = await fetch(`${API_BASE}/agent/orders?limit=20`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        displayOrdersTable(data.data.orders);
+                    } else {
+                        showOrdersPlaceholder();
+                    }
+                } else {
+                    showOrdersPlaceholder();
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showOrdersPlaceholder();
+            }
+        }
+
+        // Display orders table
+        function displayOrdersTable(orders) {
+            let html = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Semua Order Saya</h5>
+                        <button class="btn btn-sm btn-primary" onclick="showGenerateVoucherModal()">
+                            <i class="fas fa-plus me-1"></i>Order Baru
+                        </button>
+                    </div>
+                    <div class="card-body">
+            `;
+
+            if (!orders || orders.length === 0) {
+                html += `
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                        <h5>Belum ada order</h5>
+                        <p class="text-muted">Mulai order voucher pertama Anda</p>
+                        <button class="btn btn-primary" onclick="showGenerateVoucherModal()">
+                            <i class="fas fa-plus me-2"></i>Order Voucher Sekarang
+                        </button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID Order</th>
+                                    <th>Tanggal</th>
+                                    <th>Customer</th>
+                                    <th>Profil</th>
+                                    <th>Jumlah Voucher</th>
+                                    <th>Total Biaya</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                orders.forEach(order => {
+                    const customerName = order.customer_name || 'Tidak ada nama';
+                    const voucherCount = order.voucher_count || 1;
+                    const totalAmount = order.amount || 0;
+
+                    html += `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${formatDate(order.created_at)}</td>
+                            <td>${customerName}</td>
+                            <td>${order.profile || 'N/A'}</td>
+                            <td>${voucherCount}</td>
+                            <td>Rp ${totalAmount.toLocaleString('id-ID')}</td>
+                            <td><span class="badge bg-success">${order.status || 'Completed'}</span></td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-primary" title="Detail" onclick="viewOrderDetail(${order.id})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-success" title="Print" onclick="printOrder(${order.id})">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" title="Download" onclick="downloadOrder(${order.id})">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('ordersContent').innerHTML = html;
+        }
+
+        // Show orders placeholder
+        function showOrdersPlaceholder() {
+            document.getElementById('ordersContent').innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Semua Order Saya</h5>
+                        <button class="btn btn-sm btn-primary" onclick="showGenerateVoucherModal()">
+                            <i class="fas fa-plus me-1"></i>Order Baru
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                            <h5>Belum ada order</h5>
+                            <p class="text-muted">Mulai order voucher pertama Anda dengan klik tombol di atas</p>
+                            <button class="btn btn-primary" onclick="showGenerateVoucherModal()">
+                                <i class="fas fa-plus me-2"></i>Order Voucher Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // View order detail (modal)
+        async function viewOrderDetail(orderId) {
+            try {
+                const response = await fetch(`${API_BASE}/agent/orders/${orderId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    showAlert('Gagal memuat detail order', 'danger');
+                    return;
+                }
+                const result = await response.json();
+                if (!result.success) {
+                    showAlert(result.message || 'Gagal memuat detail order', 'danger');
+                    return;
+                }
+
+                const { order, vouchers } = result.data;
+                const modalEl = document.getElementById('orderDetailModal');
+                const bodyEl = document.getElementById('orderDetailBody');
+
+                bodyEl.innerHTML = `
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div><strong>ID Order:</strong> #${order.id}</div>
+                            <div><strong>Tanggal:</strong> ${formatDate(order.created_at)}</div>
+                            <div><strong>Status:</strong> <span class="badge bg-success">${order.status}</span></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div><strong>Customer:</strong> ${order.customer_name || '-'}</div>
+                            <div><strong>WhatsApp:</strong> ${order.customer_phone || '-'}</div>
+                            <div><strong>Total Biaya:</strong> Rp ${(+order.amount || 0).toLocaleString('id-ID')}</div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Username</th>
+                                    <th>Password</th>
+                                    <th>Profil</th>
+                                    <th>Durasi</th>
+                                    <th>Dibuat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${ (vouchers || []).map((v, idx) => `
+                                    <tr>
+                                        <td>${idx + 1}</td>
+                                        <td><code>${v.username}</code></td>
+                                        <td><code>${v.password}</code></td>
+                                        <td>${v.profile}</td>
+                                        <td>${v.duration}</td>
+                                        <td>${formatDate(v.created_at)}</td>
+                                    </tr>
+                                `).join('') }
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            } catch (err) {
+                console.error('viewOrderDetail error:', err);
+                showAlert('Terjadi kesalahan saat memuat detail order', 'danger');
+            }
+        }
+
+        async function printOrder(orderId) {
+            try {
+                const response = await fetch(`${API_BASE}/agent/orders/${orderId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (!response.ok) {
+                    showAlert('Gagal memuat voucher order untuk dicetak', 'danger');
+                    return;
+                }
+                const result = await response.json();
+                if (!result.success) {
+                    showAlert(result.message || 'Gagal memuat voucher order untuk dicetak', 'danger');
+                    return;
+                }
+                const voucherIds = (result.data.vouchers || []).map(v => v.id);
+                if (!voucherIds.length) {
+                    showAlert('Order belum memiliki voucher untuk dicetak', 'warning');
+                    return;
+                }
+                const url = `/print-vouchers.html?ids=${voucherIds.join(',')}`;
+                const w = window.open(url, '_blank');
+                if (!w) {
+                    showAlert('Popup diblokir. Izinkan popup untuk mencetak voucher.', 'warning');
+                }
+            } catch (e) {
+                console.error('printOrder error:', e);
+                showAlert('Terjadi kesalahan saat menyiapkan cetak voucher', 'danger');
+            }
+        }
+
+        function downloadOrder(orderId) {
+            showAlert('Fitur download order (PDF) akan segera hadir', 'info');
+        }
+
+        // Load reports section
+        async function loadReportsSection() {
+            try {
+                // Load different report periods
+                const periods = ['today', 'week', 'month'];
+                let reportsHtml = `
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4><i class="fas fa-chart-line me-2"></i>Laporan Performa</h4>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-outline-primary btn-sm active" onclick="loadReportPeriod('today')">Hari Ini</button>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="loadReportPeriod('week')">Minggu Ini</button>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="loadReportPeriod('month')">Bulan Ini</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="reportContent">
+                `;
+
+                // Load today's report by default
+                const todayResponse = await fetch(`${API_BASE}/agent/reports?period=today`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (todayResponse.ok) {
+                    const todayData = await todayResponse.json();
+                    if (todayData.success) {
+                        reportsHtml += generateReportHtml(todayData.data, 'today');
+                    } else {
+                        reportsHtml += getReportPlaceholder();
+                    }
+                } else {
+                    reportsHtml += getReportPlaceholder();
+                }
+
+                reportsHtml += '</div>';
+                document.getElementById('reportsContent').innerHTML = reportsHtml;
+
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                document.getElementById('reportsContent').innerHTML = getReportPlaceholder();
+            }
+        }
+
+        // Load report for specific period
+        async function loadReportPeriod(period) {
+            try {
+                // Update button states
+                document.querySelectorAll('#reportsContent .btn-group .btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+
+                const response = await fetch(`${API_BASE}/agent/reports?period=${period}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('reportContent').innerHTML = generateReportHtml(data.data, period);
+                    } else {
+                        document.getElementById('reportContent').innerHTML = getReportPlaceholder();
+                    }
+                } else {
+                    document.getElementById('reportContent').innerHTML = getReportPlaceholder();
+                }
+            } catch (error) {
+                console.error('Error loading report period:', error);
+                document.getElementById('reportContent').innerHTML = getReportPlaceholder();
+            }
+        }
+
+        // Generate report HTML
+        function generateReportHtml(data, period) {
+            const periodNames = {
+                'today': 'Hari Ini',
+                'week': 'Minggu Ini',
+                'month': 'Bulan Ini'
+            };
+
+            return `
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Total Order</h6>
+                                        <h3 class="mb-0">${data.summary.total_orders}</h3>
+                                    </div>
+                                    <div class="stat-icon">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Total Pendapatan</h6>
+                                        <h3 class="mb-0">Rp ${data.summary.total_amount.toLocaleString('id-ID')}</h3>
+                                    </div>
+                                    <div class="stat-icon">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card stat-card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">Order dengan Customer</h6>
+                                        <h3 class="mb-0">${data.summary.orders_with_customer}</h3>
+                                    </div>
+                                    <div class="stat-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                ${data.daily_breakdown && data.daily_breakdown.length > 0 ? `
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Breakdown Harian - ${periodNames[period]}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Jumlah Order</th>
+                                                <th>Total Pendapatan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${data.daily_breakdown.map(day => `
+                                                <tr>
+                                                    <td>${formatDate(day.date)}</td>
+                                                    <td>${day.orders}</td>
+                                                    <td>Rp ${day.amount.toLocaleString('id-ID')}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Get report placeholder
+        function getReportPlaceholder() {
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Laporan Performa</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <h5>Data laporan belum tersedia</h5>
+                            <p class="text-muted">Laporan akan muncul setelah Anda melakukan beberapa transaksi</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load profile section
+        function loadProfileSection() {
+            document.getElementById('profileContent').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Informasi Profil</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nama Lengkap</label>
+                                    <input type="text" class="form-control" value="${currentUser.full_name}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-control" value="${currentUser.username}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" value="${currentUser.email || ''}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Nomor WhatsApp</label>
+                                    <input type="text" class="form-control" value="${currentUser.phone || ''}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function showAlert(message, type) {
+            // Simple alert implementation
+            alert(message);
+        }
+
+        // Loading spinner functions
+        function showLoading(show = true) {
+            const spinner = document.getElementById('loadingSpinner');
+            if (spinner) {
+                spinner.style.display = show ? 'flex' : 'none';
+            }
+        }
+
+        // Fallback to current user data
+        function fallbackToCurrentUser() {
+            if (currentUser) {
+                document.getElementById('agentName').textContent = currentUser.full_name || 'Agent';
+                document.getElementById('agentPhone').textContent = currentUser.phone ? `+${currentUser.phone}` : '-';
+                document.getElementById('agentBalance').textContent = formatCurrency(currentUser.balance || 0);
+                document.getElementById('agentStatus').textContent = currentUser.is_active ? 'Aktif' : 'Non-aktif';
+                document.getElementById('agentJoinDate').textContent = formatDate(currentUser.created_at);
+                document.getElementById('agentLastLogin').textContent = formatDate(currentUser.last_login);
+            } else {
+                // Default values if no user data available
+                document.getElementById('agentName').textContent = 'Agent';
+                document.getElementById('agentPhone').textContent = '-';
+                document.getElementById('agentBalance').textContent = 'Rp 0';
+                document.getElementById('agentStatus').textContent = 'Aktif';
+                document.getElementById('agentJoinDate').textContent = '-';
+                document.getElementById('agentLastLogin').textContent = '-';
+            }
+        }
+
+        // Voucher Generation Functions
+        let availableProfiles = [];
+        let selectedProfile = null;
+
+        async function showGenerateVoucherModal() {
+            try {
+                showLoading(true);
+
+                // Load available profiles
+                console.log('Loading voucher profiles...');
+                const response = await fetch(`${API_BASE}/agent/profiles`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Profiles response:', data);
+
+                    if (data.success) {
+                        availableProfiles = data.profiles || [];
+                        console.log(`Loaded ${availableProfiles.length} profiles`);
+
+                        if (availableProfiles.length === 0) {
+                            showAlert('Tidak ada profil voucher yang tersedia. Admin perlu membuat profil voucher terlebih dahulu melalui dashboard admin.', 'warning');
+                            return;
+                        }
+
+                        // Populate profile select
+                        const profileSelect = document.getElementById('voucherProfileSelect');
+                        profileSelect.innerHTML = '<option value="">Pilih profil voucher...</option>';
+
+                        let activeProfilesCount = 0;
+                        availableProfiles.forEach(profile => {
+                            if (profile.is_active) {
+                                activeProfilesCount++;
+                                const option = document.createElement('option');
+                                option.value = profile.id;
+                                option.textContent = `${profile.name} - Rp ${profile.agent_price.toLocaleString('id-ID')} (${profile.duration})`;
+                                profileSelect.appendChild(option);
+                            }
+                        });
+
+                        if (activeProfilesCount === 0) {
+                            showAlert('Tidak ada profil voucher aktif. Silakan hubungi admin.', 'warning');
+                            return;
+                        }
+
+                        // Reset form
+                        document.getElementById('generateVoucherForm').reset();
+                        document.getElementById('profileDetails').style.display = 'none';
+                        document.getElementById('totalVouchers').textContent = '1';
+                        document.getElementById('totalCost').textContent = 'Rp 0';
+
+                        // Show modal
+                        const modal = new bootstrap.Modal(document.getElementById('generateVoucherModal'));
+                        modal.show();
+
+                    } else {
+                        console.error('API returned error:', data.message);
+                        showAlert(`Gagal memuat profil voucher: ${data.message || 'Unknown error'}`, 'danger');
+                    }
+                } else {
+                    console.error('HTTP error:', response.status, response.statusText);
+                    if (response.status === 401) {
+                        showAlert('Sesi Anda telah berakhir. Silakan login kembali.', 'warning');
+                        // Redirect to login if unauthorized
+                        setTimeout(() => {
+                            window.location.href = '/agent-login';
+                        }, 2000);
+                    } else if (response.status === 403) {
+                        showAlert('Anda tidak memiliki akses untuk fitur ini.', 'danger');
+                    } else {
+                        showAlert(`Gagal memuat profil voucher (${response.status}: ${response.statusText})`, 'danger');
+                    }
+                }
+            } catch (error) {
+                console.error('Network error loading profiles:', error);
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showAlert('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.', 'danger');
+                } else {
+                    showAlert('Terjadi kesalahan jaringan saat memuat profil voucher. Silakan coba lagi.', 'danger');
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function onProfileChange() {
+            const profileId = document.getElementById('voucherProfileSelect').value;
+            const quantity = parseInt(document.getElementById('voucherQuantity').value) || 1;
+
+            if (profileId) {
+                selectedProfile = availableProfiles.find(p => p.id == profileId);
+
+                if (selectedProfile) {
+                    // Update profile details
+                    document.getElementById('profileDuration').textContent = selectedProfile.duration;
+                    document.getElementById('profilePrice').textContent = formatCurrency(selectedProfile.agent_price);
+                    document.getElementById('totalVouchers').textContent = quantity;
+                    document.getElementById('totalCost').textContent = formatCurrency(selectedProfile.agent_price * quantity);
+
+                    // Show profile details
+                    document.getElementById('profileDetails').style.display = 'block';
+                }
+            } else {
+                selectedProfile = null;
+                document.getElementById('profileDetails').style.display = 'none';
+            }
+        }
+
+        // Update total when quantity changes
+        document.getElementById('voucherQuantity').addEventListener('input', function() {
+            const quantity = parseInt(this.value) || 1;
+            if (selectedProfile) {
+                document.getElementById('totalVouchers').textContent = quantity;
+                document.getElementById('totalCost').textContent = formatCurrency(selectedProfile.agent_price * quantity);
+            }
+        });
+
+        // Validate customer phone
+        function validateCustomerPhone() {
+            const phoneInput = document.getElementById('customerPhone');
+            const feedback = document.getElementById('phoneValidationFeedback');
+            const phone = phoneInput.value.trim();
+            
+            if (phone && !phone.match(/^628\d{9,12}$/)) {
+                phoneInput.classList.add('is-invalid');
+                feedback.textContent = 'Format nomor tidak valid. Contoh: 628123456789';
+            } else {
+                phoneInput.classList.remove('is-invalid');
+                feedback.textContent = '';
+            }
+        }
+
+        async function generateVoucher() {
+            if (!selectedProfile) {
+                showAlert('Pilih profil voucher terlebih dahulu', 'warning');
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById('voucherQuantity').value) || 1;
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+
+            // Validate phone format if provided
+            if (customerPhone && !customerPhone.match(/^628\d{9,12}$/)) {
+                showAlert('Format nomor WhatsApp tidak valid! Contoh: 628123456789', 'warning');
+                return;
+            }
+
+            // Check agent balance
+            if (currentUser && selectedProfile.agent_price * quantity > currentUser.balance) {
+                showAlert(`Saldo tidak cukup. Diperlukan: ${formatCurrency(selectedProfile.agent_price * quantity)}, Saldo: ${formatCurrency(currentUser.balance)}`, 'danger');
+                return;
+            }
+
+            try {
+                showLoading(true, 'generateVoucher');
+
+                const response = await fetch(`${API_BASE}/agent/generate-voucher`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        profileId: selectedProfile.id,
+                        quantity: quantity,
+                        customerName: customerName || null,
+                        customerPhone: customerPhone || null
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show success message with WhatsApp status
+                    let successMessage = result.message;
+                    if (result.whatsapp) {
+                        if (result.whatsapp.sent) {
+                            successMessage += `\n\n📱 Voucher berhasil dikirim ke ${result.whatsapp.phone}`;
+                        } else {
+                            successMessage += `\n\n❌ Gagal kirim ke WhatsApp: ${result.whatsapp.error}`;
+                        }
+                    }
+                    
+                    showAlert(successMessage, 'success');
+                    
+                    // Store voucher IDs for printing
+                    lastGeneratedVouchers = result.vouchers.map(v => v.id);
+
+                    // Reset form
+                    document.getElementById('generateVoucherForm').reset();
+                    document.getElementById('customerPhone').value = '';
+                    selectedProfile = null;
+                    document.getElementById('profileDetails').style.display = 'none';
+
+                    // Hide generate modal
+                    bootstrap.Modal.getInstance(document.getElementById('generateVoucherModal')).hide();
+
+                    // Show result modal
+                    displayVoucherResult(result.vouchers, selectedProfile);
+
+                    // Refresh dashboard data
+                    loadDashboard();
+
+                    showAlert('Voucher berhasil dibuat!', 'success');
+                } else {
+                    showAlert(result.message || 'Gagal membuat voucher', 'danger');
+                }
+            } catch (error) {
+                console.error('Error generating voucher:', error);
+                showAlert('Terjadi kesalahan saat membuat voucher', 'danger');
+            } finally {
+                showLoading(false, 'generateVoucher');
+            }
+        }
+
+        function displayVoucherResult(vouchers, profile) {
+            const resultContent = document.getElementById('voucherResultContent');
+
+            let html = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Berhasil!</strong> ${vouchers.length} voucher telah dibuat untuk profil ${profile.name}
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Username</th>
+                                        <th>Password</th>
+                                        <th>Profil</th>
+                                        <th>Durasi</th>
+                                        <th>Harga</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+
+            vouchers.forEach((voucher, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${voucher.username}</strong></td>
+                        <td><strong>${voucher.password}</strong></td>
+                        <td>${profile.name}</td>
+                        <td>${profile.duration}</td>
+                        <td>${formatCurrency(profile.agent_price)}</td>
+                        <td><span class="badge bg-success">Aktif</span></td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="fas fa-info-circle me-2"></i>Informasi Penggunaan</h6>
+                                <ol class="mb-0">
+                                    <li>Berikan username dan password kepada customer</li>
+                                    <li>Customer connect ke WiFi hotspot</li>
+                                    <li>Login menggunakan username & password di atas</li>
+                                    <li>Voucher aktif selama ${profile.duration}</li>
+                                    <li>Voucher akan expired otomatis setelah waktu habis</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            resultContent.innerHTML = html;
+
+            // Show result modal
+            const modal = new bootstrap.Modal(document.getElementById('voucherResultModal'));
+            modal.show();
+        }
+
+        function printVouchers() {
+            if (lastGeneratedVouchers.length === 0) {
+                showAlert('Tidak ada voucher yang dapat dicetak', 'warning');
+                return;
+            }
+
+            // Redirect to print page with voucher IDs
+            const voucherIds = lastGeneratedVouchers.join(',');
+            const printUrl = `/print-vouchers.html?ids=${voucherIds}`;
+
+            // Open in new window for better printing experience
+            const printWindow = window.open(printUrl, '_blank');
+
+            if (!printWindow) {
+                showAlert('Popup blocker terdeteksi. Izinkan popup untuk mencetak voucher', 'warning');
+                return;
+            }
+
+            // Close result modal
+            const resultModal = bootstrap.Modal.getInstance(document.getElementById('voucherResultModal'));
+            if (resultModal) {
+                resultModal.hide();
+            }
+        }
+
+        function downloadVouchers() {
+            showAlert('Fitur download PDF akan segera hadir', 'info');
+        }
+
+        // Request Deposit Functions
+        function showRequestDepositModal() {
+            // Reset form
+            document.getElementById('requestDepositForm').reset();
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('requestDepositModal'));
+            modal.show();
+        }
+
+        async function submitDepositRequest() {
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const notes = document.getElementById('depositNotes').value.trim();
+            const priority = document.getElementById('urgentRequest').value;
+
+            // Validation
+            if (!amount || amount < 10000) {
+                showAlert('Jumlah deposit minimal Rp 10.000', 'warning');
+                return;
+            }
+
+            if (!paymentMethod) {
+                showAlert('Pilih metode pembayaran', 'warning');
+                return;
+            }
+
+            try {
+                showLoading(true, 'submitDepositRequest');
+
+                const response = await fetch(`${API_BASE}/agent/request-deposit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        payment_method: paymentMethod,
+                        notes: notes,
+                        priority: priority
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Request deposit berhasil dikirim ke admin! Anda akan mendapat notifikasi status update.', 'success');
+                    
+                    // Hide modal
+                    bootstrap.Modal.getInstance(document.getElementById('requestDepositModal')).hide();
+                    
+                    // Refresh dashboard if needed
+                    loadAgentInfo();
+                } else {
+                    showAlert('Error: ' + result.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error submitting deposit request:', error);
+                showAlert('Terjadi kesalahan saat mengirim request', 'danger');
+            } finally {
+                showLoading(false, 'submitDepositRequest');
+            }
+        }
+
+
+
+        function showReports() {
+            showSection('reports');
+        }
+
+        function refreshOrders() {
+            loadRecentOrders();
+        }
+
+        function viewOrderDetails(orderId) {
+            // Alihkan ke fungsi implementasi
+            return viewOrderDetail(orderId);
+        }
+
+        function showProfile() {
+            showSection('profile');
+        }
+
+        function showChangePassword() {
+            showAlert('Fitur ubah password akan segera hadir', 'info');
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = 'agent-login.html';
+        }
+    </script>
+</body>
+</html>

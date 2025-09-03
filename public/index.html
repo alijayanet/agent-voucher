@@ -1,0 +1,2796 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikrotik Voucher WiFi - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-wifi me-2"></i>
+                Voucher WiFi Manager
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#vouchers">
+                            <i class="fas fa-ticket-alt me-1"></i>Voucher
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#profiles">
+                            <i class="fas fa-cog me-1"></i>Profil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#transactions">
+                            <i class="fas fa-chart-line me-1"></i>Transaksi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#agents">
+                            <i class="fas fa-users me-1"></i>Agent
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#mikrotik">
+                            <i class="fas fa-router me-1"></i>Mikrotik
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#whatsapp">
+                            <i class="fab fa-whatsapp me-1"></i>WhatsApp Gateway
+                        </a>
+                    </li>
+                    
+                    <!-- User Menu -->
+                    <li class="nav-item dropdown" id="userMenu" style="display: none;">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i><span id="currentUserName">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showProfile()"><i class="fas fa-user-edit me-2"></i>Profil</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showChangePassword()"><i class="fas fa-key me-2"></i>Ubah Password</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="doLogout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Voucher</h6>
+                                    <h3 class="mb-0" id="totalVouchers">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-ticket-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Voucher Terjual</h6>
+                                    <h3 class="mb-0" id="soldVouchers">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Pendapatan Hari Ini</h6>
+                                    <h3 class="mb-0" id="todayRevenue">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-rupiah-sign"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Pendapatan</h6>
+                                    <h3 class="mb-0" id="totalRevenue">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Aksi Cepat</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Jual Voucher</h5>
+                                            <p class="card-text">Buat dan jual voucher langsung ke customer</p>
+                                            <button class="btn btn-primary" onclick="showSellVoucherModal()">
+                                                <i class="fas fa-shopping-cart me-2"></i>Jual Voucher
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Kelola Request Deposit</h5>
+                                            <p class="card-text">Dashboard untuk mengelola semua deposit requests</p>
+                                            <button class="btn btn-info" onclick="showDepositRequestsModal()">
+                                                <i class="fas fa-clipboard-list me-2"></i>Kelola Requests
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Deposit Agent</h5>
+                                            <p class="card-text">Top-up saldo agent dengan notifikasi WhatsApp</p>
+                                            <button class="btn btn-warning" onclick="showDepositAgentModal()">
+                                                <i class="fas fa-wallet me-2"></i>Deposit Agent
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Transaksi Terbaru</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Customer</th>
+                                            <th>Profil</th>
+                                            <th>Harga</th>
+                                            <th>Tanggal</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTransactions">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Memuat data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vouchers Section -->
+        <div id="vouchers" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-ticket-alt me-2"></i>Manajemen Voucher</h2>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <button class="btn btn-primary" onclick="showCreateVoucherModal()">
+                        <i class="fas fa-plus me-2"></i>Buat Voucher
+                    </button>
+                    <button class="btn btn-success ms-2" onclick="showSellVoucherModal()">
+                        <i class="fas fa-shopping-cart me-2"></i>Jual Voucher
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Cari voucher..." id="voucherSearch">
+                        <button class="btn btn-outline-secondary" onclick="searchVouchers()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Password</th>
+                                    <th>Profil</th>
+                                    <th>Harga</th>
+                                    <th>Status</th>
+                                    <th>Dibuat</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vouchersList">
+                                <tr>
+                                    <td colspan="8" class="text-center">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav>
+                        <ul class="pagination justify-content-center" id="voucherPagination">
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other sections (profiles, transactions, mikrotik) will be added here -->
+        <!-- For brevity, I'll create separate files for each section -->
+        
+        <div id="profiles" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-cog me-2"></i>Manajemen Profil Voucher</h2>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <button class="btn btn-primary" onclick="showCreateProfileModal()">
+                        <i class="fas fa-plus me-2"></i>Buat Profil Baru
+                    </button>
+                    <button class="btn btn-success ms-2" onclick="initializeDefaultProfiles()">
+                        <i class="fas fa-download me-2"></i>Load Default
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Cari profil..." id="profileSearch" onkeypress="handleSearchKeyPress(event)">
+                        <button class="btn btn-outline-secondary" onclick="searchProfiles()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-2 mb-3">
+                    <div class="card stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Profil</h6>
+                                    <h3 class="mb-0" id="totalProfiles">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <div class="card stat-card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Profil Aktif</h6>
+                                    <h3 class="mb-0" id="activeProfiles">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <div class="card stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Harga Jual Tertinggi</h6>
+                                    <h3 class="mb-0" id="highestPrice">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-money-bill-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <div class="card stat-card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Harga Jual Terendah</h6>
+                                    <h3 class="mb-0" id="lowestPrice">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <div class="card stat-card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Rata-rata Margin</h6>
+                                    <h3 class="mb-0" id="averageMargin">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <div class="card stat-card bg-secondary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Margin</h6>
+                                    <h3 class="mb-0" id="totalMargin">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profiles Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Daftar Profil Voucher</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nama</th>
+                                    <th>Durasi</th>
+                                    <th>Harga Dasar</th>
+                                    <th>Harga Jual</th>
+                                    <th>Status</th>
+                                    <th>Voucher Terjual</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="profilesList">
+                                <tr>
+                                    <td colspan="8" class="text-center">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav>
+                        <ul class="pagination justify-content-center" id="profilePagination">
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Profile Sales Chart -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Statistik Penjualan per Profil</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="profileStatsContent">
+                                <p class="text-muted">Memuat statistik penjualan...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="transactions" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-chart-line me-2"></i>Laporan Transaksi</h2>
+                </div>
+            </div>
+
+            <!-- Filter dan Search -->
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="transactionDateFrom" class="form-label">Dari Tanggal</label>
+                    <input type="date" class="form-control" id="transactionDateFrom">
+                </div>
+                <div class="col-md-3">
+                    <label for="transactionDateTo" class="form-label">Sampai Tanggal</label>
+                    <input type="date" class="form-control" id="transactionDateTo">
+                </div>
+                <div class="col-md-3">
+                    <label for="transactionStatus" class="form-label">Status</label>
+                    <select class="form-select" id="transactionStatus">
+                        <option value="">Semua Status</option>
+                        <option value="completed">Selesai</option>
+                        <option value="pending">Pending</option>
+                        <option value="cancelled">Dibatalkan</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="transactionPayment" class="form-label">Metode Bayar</label>
+                    <select class="form-select" id="transactionPayment">
+                        <option value="">Semua Metode</option>
+                        <option value="cash">Tunai</option>
+                        <option value="transfer">Transfer</option>
+                        <option value="e-wallet">E-Wallet</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <button class="btn btn-primary" onclick="filterTransactions()">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                    <button class="btn btn-secondary ms-2" onclick="resetTransactionFilter()">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                    <button class="btn btn-success ms-2" onclick="exportTransactions()">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Cari customer..." id="transactionSearch">
+                        <button class="btn btn-outline-secondary" onclick="searchTransactions()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Transaksi</h6>
+                                    <h3 class="mb-0" id="totalTransactionsCount">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Pendapatan</h6>
+                                    <h3 class="mb-0" id="totalTransactionRevenue">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Rata-rata</h6>
+                                    <h3 class="mb-0" id="avgTransactionAmount">Rp 0</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Hari Ini</h6>
+                                    <h3 class="mb-0" id="todayTransactionsCount">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Daftar Transaksi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tanggal</th>
+                                    <th>Customer</th>
+                                    <th>No. Telepon</th>
+                                    <th>Voucher</th>
+                                    <th>Profil</th>
+                                    <th>Jumlah</th>
+                                    <th>Metode Bayar</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsList">
+                                <tr>
+                                    <td colspan="10" class="text-center">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav>
+                        <ul class="pagination justify-content-center" id="transactionPagination">
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Monthly Chart -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Grafik Penjualan Bulanan</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="monthlyChart" width="400" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Management Section -->
+        <div id="agents" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="fas fa-users me-2"></i>Manajemen Agent</h2>
+                        <div>
+                            <button class="btn btn-primary" onclick="showAddAgentModal()">
+                                <i class="fas fa-user-plus me-1"></i>Tambah Agent
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Agent</h6>
+                                    <h3 class="mb-0" id="totalAgents">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Transaksi</h6>
+                                    <h3 class="mb-0" id="totalAgentTransactions">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Saldo Agent</h6>
+                                    <h3 class="mb-0" id="totalAgentBalance">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Pendapatan</h6>
+                                    <h3 class="mb-0" id="totalAgentRevenue">-</h3>
+                                </div>
+                                <div class="stat-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Daftar Agent</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Nama Lengkap</th>
+                                    <th>WhatsApp</th>
+                                    <th>Saldo</th>
+                                    <th>Status</th>
+                                    <th>Bergabung</th>
+                                    <th>Login Terakhir</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agentsList">
+                                <tr>
+                                    <td colspan="9" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        
+
+        <div id="mikrotik" class="section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h2><i class="fas fa-router me-2"></i>Monitoring Mikrotik</h2>
+                    <p class="text-muted">Status koneksi dan monitoring sistem Mikrotik</p>
+                </div>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-wifi me-2"></i>Status Koneksi</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div id="connectionStatus" class="mb-3">
+                                        <span class="connection-status disconnected"></span>
+                                        <span id="connectionStatusText">Belum terkoneksi</span>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="testMikrotikConnection()">
+                                        <i class="fas fa-plug me-2"></i>Test Koneksi
+                                    </button>
+                                    <button class="btn btn-info ms-2" onclick="getMikrotikInfo()">
+                                        <i class="fas fa-info-circle me-2"></i>Info Sistem
+                                    </button>
+                                    <button class="btn btn-warning ms-2" onclick="showTroubleshooting()">
+                                        <i class="fas fa-question-circle me-2"></i>Troubleshooting
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <div id="mikrotikInfo" style="display: none;">
+                                        <h6>Informasi Router:</h6>
+                                        <div id="mikrotikInfoContent"></div>
+                                    </div>
+                                    <div id="troubleshootingInfo" style="display: none;">
+                                        <h6>Troubleshooting:</h6>
+                                        <div class="alert alert-info">
+                                            <small>
+                                                <strong>Jika koneksi gagal:</strong><br>
+                                                1. Pastikan IP address Mikrotik benar di file .env<br>
+                                                2. Cek apakah API service aktif: <code>/ip service enable api</code><br>
+                                                3. Periksa firewall rules untuk port yang dikonfigurasi<br>
+                                                4. Test ping ke router dari komputer ini<br>
+                                                5. Pastikan username/password benar di file .env
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mikrotik System Info -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-server me-2"></i>Informasi Sistem Mikrotik</h5>
+                                <button class="btn btn-sm btn-primary" onclick="loadMikrotikSystemInfo()">
+                                    <i class="fas fa-refresh me-1"></i>Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="mikrotikSystemInfo">
+                                <div class="text-center">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="text-muted mt-2">Memuat informasi sistem...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-users me-2"></i>User Aktif</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span>Total User Aktif: <strong id="activeUsersCount">-</strong></span>
+                                <button class="btn btn-sm btn-primary" onclick="loadActiveUsers()">
+                                    <i class="fas fa-refresh me-1"></i>Refresh
+                                </button>
+                            </div>
+                            <div id="activeUsersList" class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <p class="text-muted">Klik refresh untuk melihat user aktif</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hotspot Profiles -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Profil Hotspot</h5>
+                                <button class="btn btn-sm btn-primary" onclick="loadHotspotProfiles()">
+                                    <i class="fas fa-refresh me-1"></i>Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Profil</th>
+                                            <th>Rate Limit</th>
+                                            <th>Session Timeout</th>
+                                            <th>Idle Timeout</th>
+                                            <th>Shared Users</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hotspotProfilesList">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Klik refresh untuk memuat profil</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Hotspot Users -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-user-friends me-2"></i>Semua User Hotspot</h5>
+                                <div class="d-flex align-items-center">
+                                    <select id="hotspotUsersLimit" class="form-select form-select-sm me-2" style="width: auto;" onchange="changeHotspotUsersLimit()">
+                                        <option value="50">50 per halaman</option>
+                                        <option value="100">100 per halaman</option>
+                                    </select>
+                                    <button class="btn btn-sm btn-primary" onclick="loadHotspotUsers()">
+                                        <i class="fas fa-refresh me-1"></i>Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Password</th>
+                                            <th>Profil</th>
+                                            <th>Uptime</th>
+                                            <th>Bytes In</th>
+                                            <th>Bytes Out</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="hotspotUsersList">
+                                        <tr>
+                                            <td colspan="7" class="text-center">Klik refresh untuk memuat user</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Pagination untuk Hotspot Users -->
+                            <div id="hotspotUsersPagination" class="mt-3">
+                                <!-- Pagination akan di-render di sini -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Monitoring Tools -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Tools Monitoring & Maintenance</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Cleanup Voucher Expired</h6>
+                                            <p class="card-text small">Hapus voucher yang sudah expired dari Mikrotik dan database</p>
+                                            <button class="btn btn-warning" onclick="cleanupExpiredVouchers()">
+                                                <i class="fas fa-broom me-2"></i>Cleanup Sekarang
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Sync dengan Mikrotik</h6>
+                                            <p class="card-text small">Sinkronisasi status voucher dengan database Mikrotik</p>
+                                            <button class="btn btn-info" onclick="syncWithMikrotik()">
+                                                <i class="fas fa-sync me-2"></i>Sync Sekarang
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Re-sync Missing</h6>
+                                            <p class="card-text small">Buat ulang voucher yang ada di database tapi tidak di Mikrotik</p>
+                                            <button class="btn btn-success" onclick="resyncMissingVouchers()">
+                                                <i class="fas fa-redo me-2"></i>Re-sync
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Import User Mikrotik</h6>
+                                            <p class="card-text small">Import user yang sudah ada di Mikrotik ke database</p>
+                                            <button class="btn btn-primary" onclick="importMikrotikUsers()">
+                                                <i class="fas fa-download me-2"></i>Import Users
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-secondary">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Import Profile Mikrotik</h6>
+                                            <p class="card-text small">Import profile hotspot dari Mikrotik ke database</p>
+                                            <button class="btn btn-secondary" onclick="importMikrotikProfiles()">
+                                                <i class="fas fa-download me-2"></i>Import Profiles
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-dark">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Full Sync Dua Arah</h6>
+                                            <p class="card-text small">Sinkronisasi lengkap dua arah antara database dan Mikrotik</p>
+                                            <button class="btn btn-dark" onclick="fullSyncWithMikrotik()">
+                                                <i class="fas fa-sync-alt me-2"></i>Full Sync
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <small>
+                                            <strong><i class="fas fa-info-circle me-1"></i>Info:</strong>
+                                            Sistem akan otomatis menjalankan cleanup setiap 30 menit dan sync setiap 15 menit. 
+                                            Voucher akan otomatis dihapus dari Mikrotik saat waktu habis.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <datalist id="durationOptions">
+        <option value="1h"></option>
+        <option value="3h"></option>
+        <option value="6h"></option>
+        <option value="12h"></option>
+        <option value="1d"></option>
+        <option value="3d"></option>
+        <option value="7d"></option>
+        <option value="30d"></option>
+    </datalist>
+
+    <!-- Modals -->
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-sign-in-alt me-2"></i>Login</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="loginUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <a href="/agent-login" class="btn btn-outline-primary">
+                        <i class="fas fa-mobile-alt me-1"></i>Login Agent
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="doLogin()">Login Admin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Mikrotik User Modal -->
+    <div class="modal fade" id="createMikrotikUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Buat User Hotspot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createMikrotikUserForm">
+                        <div class="mb-3">
+                            <label for="mikrotikUserUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="mikrotikUserUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mikrotikUserPassword" class="form-label">Password</label>
+                            <input type="text" class="form-control" id="mikrotikUserPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mikrotikUserProfile" class="form-label">Profil</label>
+                            <select class="form-select" id="mikrotikUserProfile">
+                                <option value="default">default</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mikrotikUserUptime" class="form-label">Limit Uptime</label>
+                            <select class="form-select" id="mikrotikUserUptime">
+                                <option value="1h">1 Jam</option>
+                                <option value="3h">3 Jam</option>
+                                <option value="1d">1 Hari</option>
+                                <option value="7d">7 Hari</option>
+                                <option value="30d">30 Hari</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success" onclick="createMikrotikUser()">Buat User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Profile Modal -->
+    <div class="modal fade" id="createProfileModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Buat Profil Voucher Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createProfileForm">
+                        <input type="hidden" id="createMikrotikProfileName">
+                        
+                        <!-- Pilih Profil Mikrotik -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Pilih Profil Mikrotik:</strong> Profil ini akan menentukan durasi, bandwidth, dan limit data voucher
+                                </div>
+                                <div class="mb-3">
+                                    <label for="createMikrotikProfileSelect" class="form-label">Profil Mikrotik</label>
+                                    <select class="form-select" id="createMikrotikProfileSelect" onchange="onCreateMikrotikProfileChange()" required>
+                                        <option value="">Pilih profil Mikrotik...</option>
+                                    </select>
+                                    <div class="form-text">Pilih profil yang sudah ada di Mikrotik untuk sync otomatis</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="profileName" class="form-label">Nama Profil (Display)</label>
+                                    <input type="text" class="form-control" id="profileName" placeholder="Nama untuk ditampilkan ke customer" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="profileDuration" class="form-label">Durasi</label>
+                                    <input type="text" class="form-control" id="profileDuration" list="durationOptions" placeholder="contoh: 1h / 3h / 1d / 7d" required>
+                                    <div class="form-text">Isi manual jika tidak tersinkron dari Mikrotik. Format: 1h, 3h, 6h, 12h, 1d, 3d, 7d, 30d</div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="profileAgentPrice" class="form-label">Harga Dasar (Rupiah)</label>
+                                    <input type="number" class="form-control" id="profileAgentPrice" min="0" placeholder="2000" required>
+                                    <div class="form-text">Harga dasar yang akan dipotong dari saldo agent</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="profileSellingPrice" class="form-label">Harga Jual (Rupiah)</label>
+                                    <input type="number" class="form-control" id="profileSellingPrice" min="0" placeholder="3000" required>
+                                    <div class="form-text">Harga yang akan dibayar customer</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="profileDescription" class="form-label">Deskripsi</label>
+                                    <textarea class="form-control" id="profileDescription" rows="3" placeholder="Deskripsi profil voucher untuk marketing"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="profileCodeLength" class="form-label">Jumlah Digit Voucher</label>
+                                    <input type="number" class="form-control" id="profileCodeLength" min="3" max="12" value="4">
+                                    <div class="form-text">Panjang kode voucher numeric (3–12 digit). Default 4.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="createProfile()">Buat Profil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Profil Voucher</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <input type="hidden" id="editProfileId">
+                        <input type="hidden" id="editMikrotikProfileName">
+                        
+                        <!-- Pilih Profil Mikrotik -->
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Pilih Profil Mikrotik:</strong> Profil ini akan menentukan durasi, bandwidth, dan limit data voucher
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editMikrotikProfileSelect" class="form-label">Profil Mikrotik</label>
+                                    <select class="form-select" id="editMikrotikProfileSelect" onchange="onEditMikrotikProfileChange()" required>
+                                        <option value="">Pilih profil Mikrotik...</option>
+                                    </select>
+                                    <div class="form-text">Pilih profil yang sudah ada di Mikrotik untuk sync otomatis</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editProfileName" class="form-label">Nama Profil (Display)</label>
+                                    <input type="text" class="form-control" id="editProfileName" placeholder="Nama untuk ditampilkan ke customer" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editProfileDuration" class="form-label">Durasi</label>
+                                    <input type="text" class="form-control" id="editProfileDuration" list="durationOptions" placeholder="contoh: 1h / 3h / 1d / 7d" required>
+                                    <div class="form-text">Anda dapat mengubah durasi secara manual. Format: 1h, 3h, 6h, 12h, 1d, 3d, 7d, 30d</div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editProfileAgentPrice" class="form-label">Harga Dasar (Rupiah)</label>
+                                    <input type="number" class="form-control" id="editProfileAgentPrice" min="0" placeholder="2000" required>
+                                    <div class="form-text">Harga dasar yang akan dipotong dari saldo agent</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editProfileSellingPrice" class="form-label">Harga Jual (Rupiah)</label>
+                                    <input type="number" class="form-control" id="editProfileSellingPrice" min="0" placeholder="3000" required>
+                                    <div class="form-text">Harga yang akan dibayar customer</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editProfileDescription" class="form-label">Deskripsi</label>
+                                    <textarea class="form-control" id="editProfileDescription" rows="3" placeholder="Deskripsi profil voucher untuk marketing"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editProfileCodeLength" class="form-label">Jumlah Digit Voucher</label>
+                                    <input type="number" class="form-control" id="editProfileCodeLength" min="3" max="12" value="4">
+                                    <div class="form-text">Panjang kode voucher numeric (3–12 digit). Default 4.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editProfileActive" checked>
+                                    <label class="form-check-label" for="editProfileActive">
+                                        Profil aktif
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="updateProfile()">Update Profil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sell Voucher Modal -->
+    <div class="modal fade" id="sellVoucherModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Jual Voucher</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="sellVoucherForm">
+                        <div class="mb-3">
+                            <label for="sellProfileSelect" class="form-label">Pilih Profil</label>
+                            <select class="form-select" id="sellProfileSelect" required>
+                                <option value="">Pilih profil voucher...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerName" class="form-label">Nama Customer</label>
+                            <input type="text" class="form-control" id="customerName" placeholder="Nama customer (opsional)">
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerPhone" class="form-label">No. Telepon</label>
+                            <input type="tel" class="form-control" id="customerPhone" placeholder="No. telepon (opsional)">
+                        </div>
+                        <div class="mb-3">
+                            <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+                            <select class="form-select" id="paymentMethod">
+                                <option value="cash">Tunai</option>
+                                <option value="transfer">Transfer</option>
+                                <option value="e-wallet">E-Wallet</option>
+                            </select>
+                        </div>
+                        <div id="profileDetails" class="alert alert-info" style="display: none;">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="sellVoucher()">Jual Voucher</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Requests Management Modal -->
+    <div class="modal fade" id="depositRequestsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-clipboard-list me-2"></i>Kelola Request Deposit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Quick Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Pending</h6>
+                                    <h4 class="mb-0" id="pendingRequestsCount">-</h4>
+                                    <small id="pendingRequestsAmount">Rp -</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Approved Today</h6>
+                                    <h4 class="mb-0" id="approvedTodayCount">-</h4>
+                                    <small id="approvedTodayAmount">Rp -</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Rejected Today</h6>
+                                    <h4 class="mb-0" id="rejectedTodayCount">-</h4>
+                                    <small id="rejectedTodayAmount">Rp -</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">Total Requests</h6>
+                                    <h4 class="mb-0" id="totalRequestsCount">-</h4>
+                                    <small id="totalRequestsAmount">Rp -</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter and Actions -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select class="form-control" id="statusFilter" onchange="filterDepositRequests()">
+                                <option value="">Semua Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-control" id="priorityFilter" onchange="filterDepositRequests()">
+                                <option value="">Semua Prioritas</option>
+                                <option value="normal">Normal</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="asap">ASAP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary" onclick="refreshDepositRequests()">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                            <button class="btn btn-success" onclick="bulkApproveSelected()" id="bulkApproveBtn" disabled>
+                                <i class="fas fa-check me-1"></i>Approve Selected
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Requests Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAllRequests" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th>ID</th>
+                                    <th>Agent</th>
+                                    <th>Jumlah</th>
+                                    <th>Metode</th>
+                                    <th>Prioritas</th>
+                                    <th>Status</th>
+                                    <th>Tanggal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="depositRequestsTable">
+                                <tr>
+                                    <td colspan="9" class="text-center">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav>
+                        <ul class="pagination justify-content-center" id="depositRequestsPagination">
+                        </ul>
+                    </nav>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voucher Details Modal -->
+    <div class="modal fade" id="voucherDetailsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Voucher</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="voucherDetailsContent">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="printVoucher()">
+                        <i class="fas fa-print me-2"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div id="profile" class="section" style="display: none;">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-user me-2"></i>Profil Pengguna</h2>
+                    <div>
+                        <button class="btn btn-outline-primary me-2" onclick="showEditProfileModal()">
+                            <i class="fas fa-edit me-1"></i>Edit Profil
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="showChangePasswordModal()">
+                            <i class="fas fa-key me-1"></i>Ubah Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="profileSection" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Profil</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-4"><strong>Username:</strong></div>
+                                <div class="col-8" id="profileUsername">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4"><strong>Nama Lengkap:</strong></div>
+                                <div class="col-8" id="profileFullName">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4"><strong>Email:</strong></div>
+                                <div class="col-8" id="profileEmail">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4"><strong>Role:</strong></div>
+                                <div class="col-8" id="profileRole">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4"><strong>Bergabung Sejak:</strong></div>
+                                <div class="col-8" id="profileCreatedAt">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4"><strong>Login Terakhir:</strong></div>
+                                <div class="col-8" id="profileLastLogin">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Keamanan</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Tips Keamanan:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Gunakan password yang kuat (minimal 8 karakter)</li>
+                                    <li>Jangan bagikan password dengan siapapun</li>
+                                    <li>Ganti password secara berkala</li>
+                                    <li>Logout setelah selesai menggunakan aplikasi</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Profil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserProfileForm">
+                        <div class="mb-3">
+                            <label for="editProfileFullName" class="form-label">Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="editProfileFullName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProfileEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editProfileEmail" placeholder="opsional">
+                            <div class="form-text">Email digunakan untuk notifikasi dan pemulihan akun</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="updateUserProfile()">
+                        <i class="fas fa-save me-1"></i>Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Ubah Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Password Saat Ini *</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Password Baru *</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="6">
+                            <div class="form-text">Password minimal 6 karakter</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Konfirmasi Password Baru *</label>
+                            <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-warning" onclick="changePassword()">
+                        <i class="fas fa-key me-1"></i>Ubah Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Agent Modal -->
+    <div class="modal fade" id="addAgentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Tambah Agent Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAgentForm">
+                        <div class="mb-3">
+                            <label for="agentUsername" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="agentUsername" required>
+                            <div class="form-text">Username unik untuk login agent</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="agentPassword" class="form-label">Password *</label>
+                            <input type="password" class="form-control" id="agentPassword" required minlength="6">
+                            <div class="form-text">Password minimal 6 karakter</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="agentFullName" class="form-label">Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="agentFullName" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="agentPhone" class="form-label">Nomor WhatsApp *</label>
+                            <input type="tel" class="form-control" id="agentPhone" required placeholder="628xxxxxxxxxx">
+                            <div class="form-text">Format: 628xxxxxxxxxx (tanpa tanda + atau spasi)</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="agentAddress" class="form-label">Alamat</label>
+                            <textarea class="form-control" id="agentAddress" rows="2" placeholder="opsional"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="addAgent()">
+                        <i class="fas fa-save me-1"></i>Tambah Agent
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Agent Modal -->
+    <div class="modal fade" id="depositAgentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-money-bill-wave me-2"></i>Deposit Saldo Agent</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="depositAgentForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Agent</label>
+                            <input type="text" class="form-control" id="depositAgentName" readonly>
+                            <input type="hidden" id="depositAgentId">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Saldo Saat Ini</label>
+                            <input type="text" class="form-control" id="depositCurrentBalance" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositAmount" class="form-label">Jumlah Deposit *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control" id="depositAmount" required min="1000" step="1000">
+                            </div>
+                            <div class="form-text">Minimal deposit Rp 1.000</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="depositNotes" class="form-label">Catatan</label>
+                            <textarea class="form-control" id="depositNotes" rows="2" placeholder="Contoh: Deposit awal, Top up saldo, dll"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i>Proses Deposit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+            </div>
+
+        <!-- Add Admin Phone Modal -->
+
+
+        <!-- WhatsApp Order Modal -->
+    <div class="modal fade" id="whatsAppOrderModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fab fa-whatsapp me-2"></i>WhatsApp Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="whatsAppOrderForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="waCustomerName" class="form-label">Nama Customer *</label>
+                                    <input type="text" class="form-control" id="waCustomerName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="waCustomerPhone" class="form-label">Nomor WhatsApp *</label>
+                                    <input type="tel" class="form-control" id="waCustomerPhone" required placeholder="628xxxxxxxxxx">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="waProfileSelect" class="form-label">Profil Voucher *</label>
+                                    <select class="form-control" id="waProfileSelect" required>
+                                        <option value="">Pilih profil voucher...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="waQuantity" class="form-label">Jumlah Voucher *</label>
+                                    <input type="number" class="form-control" id="waQuantity" required min="1" value="1">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="waPaymentMethod" class="form-label">Metode Pembayaran *</label>
+                                    <select class="form-control" id="waPaymentMethod" required>
+                                        <option value="">Pilih metode pembayaran...</option>
+                                        <option value="transfer">Transfer Bank</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="ewallet">E-Wallet</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="waNotes" class="form-label">Catatan</label>
+                                    <textarea class="form-control" id="waNotes" rows="2" placeholder="Catatan tambahan..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="waOrderSummary" class="mt-3" style="display: none;">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Ringkasan Order</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">Profil:</small><br>
+                                            <span id="waSummaryProfile">-</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Total Harga:</small><br>
+                                            <span id="waSummaryTotal" class="fw-bold">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success" onclick="processWhatsAppOrder()">
+                        <i class="fab fa-whatsapp me-1"></i>Proses Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WhatsApp Gateway Section -->
+    <div id="whatsapp" class="section" style="display: none;">
+        <div class="row">
+            <div class="col-12">
+                <h2><i class="fab fa-whatsapp me-2"></i>WhatsApp Gateway</h2>
+                <p class="text-muted">Kelola gateway WhatsApp untuk order voucher otomatis</p>
+            </div>
+        </div>
+
+        <!-- Gateway Status -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">Status Gateway</h6>
+                                <h5 class="mb-0" id="whatsappStatus">⚪ Unknown</h5>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">Nomor WhatsApp</h6>
+                                <h6 class="mb-0" id="whatsappPhone">-</h6>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">Order Aktif</h6>
+                                <h3 class="mb-0" id="whatsappOrders">-</h3>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">QR Code</h6>
+                                <button class="btn btn-sm btn-light" onclick="getWhatsAppQRCode()">
+                                    <i class="fas fa-qrcode me-1"></i>Get QR
+                                </button>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Info -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Koneksi</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="connectionInfo">
+                            <div class="mb-2"><strong>Status:</strong> Disconnected</div>
+                            <div class="mb-2"><strong>Reconnect Attempts:</strong> 0</div>
+                            <div class="mb-2"><strong>Active Orders:</strong> 0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gateway Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Kontrol Gateway</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-success me-2" onclick="initializeWhatsAppGateway()">
+                                    <i class="fas fa-play me-2"></i>Start Gateway
+                                </button>
+                                <button class="btn btn-danger me-2" onclick="disconnectWhatsAppGateway()">
+                                    <i class="fas fa-stop me-2"></i>Stop Gateway
+                                </button>
+                                <button class="btn btn-info" onclick="getWhatsAppStatus()">
+                                    <i class="fas fa-sync me-2"></i>Refresh Status
+                                </button>
+                                <button class="btn btn-warning ms-2" onclick="resetWhatsAppSession()">
+                                    <i class="fas fa-redo me-2"></i>Reset Koneksi (QR Baru)
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-warning" onclick="showWhatsAppHelp()">
+                                    <i class="fas fa-question-circle me-2"></i>Bantuan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Pengaturan Keamanan Login Agent</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="otpLoginEnabled" onchange="toggleOTPLoginSettings()">
+                                    <label class="form-check-label fw-bold" for="otpLoginEnabled">
+                                        <i class="fas fa-lock me-1"></i>Aktifkan 2FA (OTP) untuk Login Agent
+                                    </label>
+                                </div>
+                                <small class="text-muted">OTP akan diminta saat agent login ke dashboard</small>
+                            </div>
+                            <div class="col-md-3" id="otpLengthSection">
+                                <label for="otpLength" class="form-label">Panjang OTP</label>
+                                <select class="form-control" id="otpLength">
+                                    <option value="4">4 Digit</option>
+                                    <option value="6" selected>6 Digit</option>
+                                    <option value="8">8 Digit</option>
+                                </select>
+                                <small class="text-muted">Pilih panjang kode OTP</small>
+                            </div>
+                            <div class="col-md-3" id="otpExpirySection">
+                                <label for="otpExpiry" class="form-label">Waktu Kadaluarsa</label>
+                                <select class="form-control" id="otpExpiry">
+                                    <option value="300">5 Menit</option>
+                                    <option value="600" selected>10 Menit</option>
+                                    <option value="900">15 Menit</option>
+                                    <option value="1800">30 Menit</option>
+                                </select>
+                                <small class="text-muted">Batas waktu OTP berlaku</small>
+                            </div>
+                            <div class="col-md-2" id="otpButtonSection">
+                                <label class="form-label">&nbsp;</label>
+                                <div>
+                                    <button class="btn btn-primary" onclick="saveOTPLoginSettings()">
+                                        <i class="fas fa-save me-1"></i>Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" id="otpInfo">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Cara Kerja 2FA Login:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Agent login dengan username & password seperti biasa</li>
+                                        <li>Sistem akan kirim kode OTP ke WhatsApp agent</li>
+                                        <li>Agent masukkan kode OTP untuk menyelesaikan login</li>
+                                        <li>OTP berlaku selama waktu yang ditentukan</li>
+                                        <li>Meningkatkan keamanan akses dashboard agent</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2" id="otpStatusRow">
+                            <div class="col-12">
+                                <div class="alert alert-secondary">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <strong>Status 2FA:</strong> <span id="otpStatusText">Belum dimuat</span> |
+                                    <strong>Panjang OTP:</strong> <span id="otpLengthText">-</span> digit |
+                                    <strong>Kadaluarsa:</strong> <span id="otpExpiryText">-</span> menit
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order History -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Riwayat Order WhatsApp</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tanggal</th>
+                                        <th>Agent</th>
+                                        <th>Customer</th>
+                                        <th>Phone</th>
+                                        <th>Jumlah</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="whatsappOrdersList">
+                                    <tr>
+                                        <td colspan="8" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="position-fixed top-50 start-50 translate-middle" style="display: none; z-index: 9999;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+
+    <!-- Agent Management Functions -->
+    <script>
+        // Show add agent modal
+        function showAddAgentModal() {
+            document.getElementById('addAgentForm').reset();
+            const modal = new bootstrap.Modal(document.getElementById('addAgentModal'));
+            modal.show();
+        }
+
+        // Add new agent
+        async function addAgent() {
+            const username = document.getElementById('agentUsername').value;
+            const password = document.getElementById('agentPassword').value;
+            const fullName = document.getElementById('agentFullName').value;
+            const phone = document.getElementById('agentPhone').value;
+            const address = document.getElementById('agentAddress').value;
+
+            if (!username || !password || !fullName || !phone) {
+                showAlert('Semua field wajib diisi', 'warning');
+                return;
+            }
+
+            showLoadingSpinner();
+
+            try {
+                const response = await fetch('/api/agents', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        full_name: fullName,
+                        phone,
+                        address
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('addAgentModal')).hide();
+                    loadAgentsList();
+                    loadAgentStats();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error adding agent:', error);
+                showAlert('Terjadi kesalahan saat menambah agent', 'danger');
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        // Load agents list
+        let agentsListAttempts = 0;
+        async function loadAgentsList() {
+            // Ensure authToken available (fallback to localStorage)
+            if (!authToken) {
+                const stored = localStorage.getItem('authToken');
+                if (stored) {
+                    authToken = stored;
+                }
+            }
+            if (!authToken) {
+                console.warn('No auth token available for loading agents');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/agents?page=1&limit=50&_ts=' + Date.now(), {
+                    cache: 'no-store',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                console.log('📦 Agents list response:', data);
+
+                if (data.success) {
+                    const payload = (typeof data.data !== 'undefined') ? data.data : data;
+                    let agents = [];
+                    if (Array.isArray(payload)) {
+                        agents = payload;
+                    } else {
+                        agents = payload.agents || payload.users || payload.items || [];
+                    }
+
+                    // If empty but stats indicate there should be data, retry a few times
+                    if (agents.length === 0 && agentsListAttempts < 3) {
+                        agentsListAttempts += 1;
+                        console.log(`⏳ Agents list empty, retrying (${agentsListAttempts}/3)...`);
+                        setTimeout(loadAgentsList, 400);
+                        return;
+                    }
+
+                    displayAgents(agents);
+                } else {
+                    showAlert('Gagal memuat daftar agent', 'danger');
+                }
+            } catch (error) {
+                console.error('Error loading agents:', error);
+                showAlert('Terjadi kesalahan saat memuat agent' + (error?.message ? ': ' + error.message : ''), 'danger');
+            }
+        }
+
+        // Display agents in table
+        function displayAgents(agents) {
+            const tbody = document.getElementById('agentsList');
+
+            if (!agents || agents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center">Tidak ada agent ditemukan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = agents.map(agent => `
+                <tr>
+                    <td>${agent.id}</td>
+                    <td>${agent.username}</td>
+                    <td>${agent.full_name}</td>
+                    <td>${agent.phone || '-'}</td>
+                    <td>Rp ${((agent.balance ?? 0) * 1).toLocaleString('id-ID')}</td>
+                    <td>
+                        <span class="badge ${(agent.is_active === 0 || agent.is_active === false) ? 'bg-danger' : 'bg-success'}">
+                            ${(agent.is_active === 0 || agent.is_active === false) ? 'Tidak Aktif' : 'Aktif'}
+                        </span>
+                    </td>
+                    <td>${agent.created_at ? new Date(agent.created_at).toLocaleDateString('id-ID') : '-'}</td>
+                    <td>${agent.last_login ? new Date(agent.last_login).toLocaleDateString('id-ID') : '-'}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="showDepositModal(${agent.id}, '${agent.full_name}', ${agent.balance || 0})">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="viewAgentDetail(${agent.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="editAgent(${agent.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAgent(${agent.id}, '${agent.full_name}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load agent statistics
+        async function loadAgentStats() {
+            try {
+                const response = await fetch('/api/agents/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const stats = data.data;
+                    document.getElementById('totalAgents').textContent = stats.total_agents || 0;
+                    document.getElementById('activeAgents').textContent = stats.active_agents || 0;
+                    document.getElementById('totalAgentTransactions').textContent = stats.total_transactions || 0;
+                    document.getElementById('totalAgentBalance').textContent = (stats.total_balance || 0).toLocaleString();
+                    document.getElementById('totalAgentRevenue').textContent = (stats.total_revenue || 0).toLocaleString();
+                }
+            } catch (error) {
+                console.error('Error loading agent stats:', error);
+            }
+        }
+
+        // Show deposit modal
+        function showDepositModal(agentId, agentName, currentBalance) {
+            document.getElementById('depositAgentName').value = agentName;
+            document.getElementById('depositAgentId').value = agentId;
+            document.getElementById('depositCurrentBalance').value = `Rp ${currentBalance.toLocaleString()}`;
+            document.getElementById('depositAgentForm').reset();
+
+            const modal = new bootstrap.Modal(document.getElementById('depositAgentModal'));
+            modal.show();
+        }
+
+        // Handle deposit form submission
+        document.getElementById('depositAgentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const agentId = document.getElementById('depositAgentId').value;
+            const amount = parseInt(document.getElementById('depositAmount').value);
+            const notes = document.getElementById('depositNotes').value;
+
+            if (!agentId || !amount || amount < 1000) {
+                showAlert('Jumlah deposit minimal Rp 1.000', 'warning');
+                return;
+            }
+
+            showLoadingSpinner();
+
+            try {
+                const response = await fetch('/api/agents/deposit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        agent_id: agentId,
+                        amount,
+                        notes
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('depositAgentModal')).hide();
+                    loadAgentsList();
+                    loadAgentStats();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error depositing agent:', error);
+                showAlert('Terjadi kesalahan saat deposit', 'danger');
+            } finally {
+                hideLoadingSpinner();
+            }
+        });
+
+        // View agent detail
+        async function viewAgentDetail(agentId) {
+            try {
+                if (!authToken) {
+                    showAlert('Sesi login berakhir, silakan login ulang.', 'warning');
+                    return;
+                }
+
+                const response = await fetch(`/api/agents/${agentId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    showAlert(data.message || 'Gagal memuat detail agent', 'danger');
+                    return;
+                }
+
+                const a = data.agent;
+                const html = `
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr><th style="width:180px">ID</th><td>${a.id}</td></tr>
+                                <tr><th>Username</th><td>${a.username}</td></tr>
+                                <tr><th>Nama Lengkap</th><td>${a.full_name || '-'}</td></tr>
+                                <tr><th>WhatsApp</th><td>${a.phone || '-'}</td></tr>
+                                <tr><th>Alamat</th><td>${a.address || '-'}</td></tr>
+                                <tr><th>Saldo</th><td>Rp ${((a.balance ?? 0) * 1).toLocaleString('id-ID')}</td></tr>
+                                <tr><th>Status</th><td>${(a.is_active === 0 || a.is_active === false) ? 'Tidak Aktif' : 'Aktif'}</td></tr>
+                                <tr><th>Bergabung</th><td>${a.created_at ? new Date(a.created_at).toLocaleString('id-ID') : '-'}</td></tr>
+                                <tr><th>Login Terakhir</th><td>${a.last_login ? new Date(a.last_login).toLocaleString('id-ID') : '-'}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                // Show in a basic modal
+                const modalId = 'agentDetailModal';
+                let modalEl = document.getElementById(modalId);
+                if (!modalEl) {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = `
+                        <div class="modal fade" id="${modalId}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title"><i class="fas fa-user me-2"></i>Detail Agent</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body" id="${modalId}Body"></div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    document.body.appendChild(wrapper.firstElementChild);
+                    modalEl = document.getElementById(modalId);
+                }
+
+                document.getElementById(`${modalId}Body`).innerHTML = html;
+                new bootstrap.Modal(modalEl).show();
+
+            } catch (err) {
+                console.error('viewAgentDetail error:', err);
+                showAlert('Terjadi kesalahan saat memuat detail agent', 'danger');
+            }
+        }
+
+        // Edit agent (simple inline modal)
+        async function editAgent(agentId) {
+            try {
+                if (!authToken) {
+                    showAlert('Sesi login berakhir, silakan login ulang.', 'warning');
+                    return;
+                }
+
+                // Load existing data first
+                const resp = await fetch(`/api/agents/${agentId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const json = await resp.json();
+                if (!resp.ok || !json.success) {
+                    showAlert(json.message || 'Gagal memuat data agent', 'danger');
+                    return;
+                }
+                const a = json.agent;
+
+                const modalId = 'agentEditModal';
+                let modalEl = document.getElementById(modalId);
+                if (!modalEl) {
+                    const wrap = document.createElement('div');
+                    wrap.innerHTML = `
+                        <div class="modal fade" id="${modalId}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Agent</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="agentEditForm">
+                                            <div class="mb-3">
+                                                <label class="form-label">Nama Lengkap</label>
+                                                <input type="text" class="form-control" id="editFullName" required>
+                                            </div>
+                        
+                                            <div class="mb-3">
+                                                <label class="form-label">Nomor WhatsApp</label>
+                                                <input type="tel" class="form-control" id="editPhone" placeholder="628xxxxxxxxxx">
+                                            </div>
+                        
+                                            <div class="mb-3">
+                                                <label class="form-label">Alamat</label>
+                                                <input type="text" class="form-control" id="editAddress">
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="button" class="btn btn-primary" id="saveAgentEditBtn">Simpan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    document.body.appendChild(wrap.firstElementChild);
+                    modalEl = document.getElementById(modalId);
+                }
+
+                // Prefill
+                document.getElementById('editFullName').value = a.full_name || '';
+                document.getElementById('editPhone').value = a.phone || '';
+                document.getElementById('editAddress').value = a.address || '';
+
+                // Bind save
+                const saveBtn = document.getElementById('saveAgentEditBtn');
+                saveBtn.onclick = async () => {
+                    try {
+                        const payload = {
+                            full_name: document.getElementById('editFullName').value.trim(),
+                            phone: document.getElementById('editPhone').value.trim(),
+                            address: document.getElementById('editAddress').value.trim()
+                        };
+
+                        const up = await fetch(`/api/agents/${agentId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${authToken}`
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        const upJson = await up.json();
+                        if (!up.ok || !upJson.success) {
+                            showAlert(upJson.message || 'Gagal mengupdate agent', 'danger');
+                            return;
+                        }
+                        showAlert('Agent berhasil diupdate', 'success');
+                        bootstrap.Modal.getInstance(modalEl).hide();
+                        loadAgentsList && loadAgentsList();
+                        loadAgents && loadAgents();
+                        loadAgentStats && loadAgentStats();
+                    } catch (e) {
+                        console.error('saveAgentEdit error:', e);
+                        showAlert('Terjadi kesalahan saat menyimpan', 'danger');
+                    }
+                };
+
+                new bootstrap.Modal(modalEl).show();
+            } catch (e) {
+                console.error('editAgent error:', e);
+                showAlert('Terjadi kesalahan saat memuat form edit', 'danger');
+            }
+        }
+
+        // Delete agent
+        async function deleteAgent(agentId, agentName) {
+            if (!confirm(`Apakah Anda yakin ingin menghapus agent "${agentName}"?`)) {
+                return;
+            }
+
+            showLoadingSpinner();
+
+            try {
+                const response = await fetch(`/api/agents/${agentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    loadAgentsList();
+                    loadAgentStats();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error deleting agent:', error);
+                showAlert('Terjadi kesalahan saat menghapus agent', 'danger');
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        // Show loading spinner
+        function showLoadingSpinner() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+        }
+
+        // Hide loading spinner
+        function hideLoadingSpinner() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Load pending agent registrations
+        async function loadPendingRegistrations() {
+            try {
+                const response = await fetch('/api/agents/registrations/pending', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayPendingRegistrations(data.data);
+                } else {
+                    showAlert('Gagal memuat pendaftaran agent', 'danger');
+                }
+            } catch (error) {
+                console.error('Error loading pending registrations:', error);
+                showAlert('Terjadi kesalahan saat memuat pendaftaran', 'danger');
+            }
+        }
+
+        // Display pending registrations in table
+        function displayPendingRegistrations(registrations) {
+            const tbody = document.getElementById('pendingRegistrationsList');
+
+            if (!registrations || registrations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada pendaftaran menunggu persetujuan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = registrations.map(reg => `
+                <tr>
+                    <td>${reg.id}</td>
+                    <td>${reg.full_name}</td>
+                    <td>${reg.phone_number}</td>
+                    <td>${new Date(reg.created_at).toLocaleDateString('id-ID')} ${new Date(reg.created_at).toLocaleTimeString('id-ID')}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-success" onclick="approveRegistration(${reg.id}, '${reg.full_name}')">
+                                <i class="fas fa-check"></i> Setujui
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectRegistration(${reg.id}, '${reg.full_name}')">
+                                <i class="fas fa-times"></i> Tolak
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Approve agent registration
+        async function approveRegistration(registrationId, agentName) {
+            if (!confirm(`Apakah Anda yakin ingin menyetujui pendaftaran agent "${agentName}"?`)) {
+                return;
+            }
+
+            showLoadingSpinner();
+
+            try {
+                const response = await fetch(`/api/agents/registrations/${registrationId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(`✅ Agent ${agentName} berhasil disetujui!`, 'success');
+                    loadPendingRegistrations();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error approving registration:', error);
+                showAlert('Terjadi kesalahan saat menyetujui pendaftaran', 'danger');
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        // Reject agent registration
+        async function rejectRegistration(registrationId, agentName) {
+            const reason = prompt(`Alasan penolakan untuk "${agentName}":`);
+            if (reason === null) return; // User cancelled
+
+            showLoadingSpinner();
+
+            try {
+                const response = await fetch(`/api/agents/registrations/${registrationId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ reason })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(`❌ Agent ${agentName} berhasil ditolak!`, 'warning');
+                    loadPendingRegistrations();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error rejecting registration:', error);
+                showAlert('Terjadi kesalahan saat menolak pendaftaran', 'danger');
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load agents when agents section is clicked
+            const agentsLink = document.querySelector('a[href="#agents"]');
+            if (agentsLink) {
+                agentsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showSection('agents');
+                    loadAgentsList();
+                    loadAgentStats();
+                });
+            }
+
+            // Load registrations when registrations section is clicked
+            const registrationsLink = document.querySelector('a[href="#registrations"]');
+            if (registrationsLink) {
+                registrationsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showSection('registrations');
+                    loadPendingRegistrations();
+                });
+            }
+
+            // Auto-open agents section on initial load if hash is #agents or by default
+            const openAgents = () => {
+                showSection('agents');
+                // Defer slightly to allow auth token population from app.js
+                setTimeout(() => {
+                    loadAgentsList();
+                    loadAgentStats();
+                }, 150);
+            };
+
+            if (window.location.hash === '#agents') {
+                openAgents();
+            }
+
+            // As a fallback, if no hash set, open agents by default
+            if (!window.location.hash) {
+                openAgents();
+            }
+
+            // Refresh data on hash change to #agents
+            window.addEventListener('hashchange', () => {
+                if (window.location.hash === '#agents') {
+                    openAgents();
+                }
+            });
+        });
+
+        // ===== ADMIN PHONES MANAGEMENT =====
+
+        // Show add admin phone modal
+
+
+        // Test agents endpoint first
+        async function testAgentsEndpoint() {
+            console.log('🧪 Testing agents endpoint...');
+
+            try {
+                // First test basic connectivity without auth
+                console.log('📡 Testing basic connectivity...');
+                const basicResponse = await fetch('/api/agents/test', {
+                    method: 'GET'
+                });
+
+                if (!basicResponse.ok) {
+                    console.error('❌ Basic connectivity test failed:', basicResponse.status, basicResponse.statusText);
+                    return false;
+                }
+
+                const basicData = await basicResponse.json();
+                console.log('✅ Basic connectivity test passed');
+
+                // If we have auth token, test admin access
+                if (authToken) {
+                    console.log('📡 Testing admin access...');
+                    const adminResponse = await fetch('/api/agents/admin-phone', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+
+                    console.log('📡 Admin test response status:', adminResponse.status);
+
+                    if (!adminResponse.ok) {
+                        console.error('❌ Admin access test failed:', adminResponse.status, adminResponse.statusText);
+                        return false;
+                    }
+
+                    const adminData = await adminResponse.json();
+                    console.log('✅ Admin access confirmed:', adminData);
+                    return true;
+                } else {
+                    console.log('ℹ️ No auth token - basic connectivity confirmed');
+                    return true;
+                }
+            } catch (error) {
+                console.error('❌ Test endpoint error:', error);
+                return false;
+            }
+        }
+
+        // Load admin phones list
+        async function loadAdminPhonesList() {
+            console.log('📱 Loading admin phones list...');
+            console.log('🔑 Auth token available:', !!authToken);
+
+            if (!authToken) {
+                console.warn('❌ No auth token available for loading admin phones');
+                showAlert('Sesi login telah berakhir. Silakan login kembali.', 'warning');
+                return;
+            }
+
+            // Test agents endpoint first
+            const testResult = await testAgentsEndpoint();
+            if (!testResult) {
+                if (!authToken) {
+                    showAlert('Silakan login terlebih dahulu untuk mengakses halaman ini.', 'warning');
+                } else {
+                    showAlert('Anda tidak memiliki akses admin. Silakan hubungi administrator.', 'warning');
+                }
+                return;
+            }
+
+            try {
+                console.log('📡 Making request to /api/agents/admin-phones');
+                const response = await fetch('/api/agents/admin-phones', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                console.log('📡 Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayAdminPhones(data.admin_phones);
+                } else {
+                    console.error('API Error:', data);
+                    showAlert(data.message || 'Gagal memuat nomor admin', 'danger');
+                }
+            } catch (error) {
+                console.error('Error loading admin phones:', error);
+                if (error.message.includes('HTTP 401')) {
+                    showAlert('Sesi login telah berakhir. Silakan login kembali.', 'warning');
+                } else if (error.message.includes('HTTP 403')) {
+                    showAlert('Anda tidak memiliki akses untuk fitur ini.', 'warning');
+                } else {
+                    showAlert('Terjadi kesalahan saat memuat nomor admin: ' + error.message, 'danger');
+                }
+            }
+        }
+
+        // Display admin phones in table
+        function displayAdminPhones(adminPhones) {
+            const tbody = document.getElementById('adminPhonesList');
+
+            if (!adminPhones || adminPhones.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center">Nomor admin belum dikonfigurasi</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = adminPhones.map((phone, index) => `
+                <tr>
+                    <td>Admin ${index + 1}</td>
+                    <td>${phone}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Initialize admin phone section (simplified)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load admin phone when admin-phones section is clicked
+            const adminPhonesLink = document.querySelector('a[href="#admin-phones"]');
+            if (adminPhonesLink) {
+                adminPhonesLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showSection('admin-phones');
+                    loadAdminPhonesList();
+                });
+            }
+        });
+    </script>
+
+    <!-- Transaction Detail Modal -->
+    <div class="modal fade" id="transactionDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-receipt me-2"></i>Detail Transaksi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="transactionDetailBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" onclick="printTransactionDetail()"><i class="fas fa-print me-1"></i>Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+# SETUP HOTSPOT LOGIN PAGE DI MIKROTIK
+# =====================================
+
+## 1. Upload Files ke Mikrotik
+# Upload file-file berikut ke Files di Mikrotik:
+# - login.html
+# - status.html  
+# - logout.html
+
+/file upload
+# Gunakan WinBox atau WebFig untuk upload files
+
+## 2. Setup Hotspot Server Profile
+/ip hotspot profile
+set default html-directory=hotspot login-by=username,http-cookie-only
+
+## 3. Konfigurasi Hotspot Server
+/ip hotspot
+set 0 profile=default interface=bridge address-pool=dhcp_pool1
+
+## 4. Setup User Profile untuk Voucher
+/ip hotspot user profile
+
+# Profile default untuk voucher (disesuaikan dengan kebutuhan)
+add name=voucher-profile rate-limit=2M/1M shared-users=1 
+add-mac-cookie=yes mac-cookie-timeout=1d
+
+## 5. Test Login Page
+# Buka browser dan akses IP hotspot
+# Seharusnya tampil halaman login yang sudah di-customize
+
+## 6. IMPORTANT: Sinkronisasi dengan Aplikasi
+# Pastikan aplikasi voucher management bisa:
+# - Membuat user di Mikrotik dengan profile yang tepat
+# - Set session-timeout sesuai durasi voucher
+# - Cleanup user yang expired
+
+## 7. Monitoring
+/ip hotspot active print
+/ip hotspot user print
+/log print where topics~"hotspot"
+
+## 8. Troubleshooting
+# Jika login page tidak muncul:
+# - Check hotspot server status: /ip hotspot print
+# - Check file upload: /file print
+# - Check DNS settings: /ip dns print
+
+## 9. Customization Lanjutan
+# Untuk mengubah tampilan, edit file HTML dan upload ulang
+# Variabel Mikrotik yang bisa digunakan:
+# $(username) - username yang login
+# $(uptime) - waktu online
+# $(bytes-in-nice) - data download (formatted)
+# $(bytes-out-nice) - data upload (formatted)
+# $(ip) - IP address client
+# $(error) - pesan error
+# $(link-login-only) - link ke halaman login
+# $(link-logout) - link logout
+# $(link-status) - link status
+
+## 10. Backup Konfigurasi
+/export file=hotspot-backup

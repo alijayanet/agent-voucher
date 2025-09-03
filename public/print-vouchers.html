@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak Voucher - Agent Voucher WiFi</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Print Styles */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            .print-controls {
+                display: none !important;
+            }
+
+            .voucher-container {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .voucher-page {
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-after: page;
+                break-inside: avoid;
+            }
+        }
+
+        /* Page Layout */
+        .voucher-page {
+            width: 210mm; /* A4 width */
+            height: 297mm; /* A4 height */
+            margin: 0 auto;
+            padding: 5mm; /* kecil agar muat 8 baris */
+            background: white;
+            position: relative;
+        }
+
+        /* Voucher Grid Layout */
+        .voucher-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 65mm);
+            grid-template-rows: repeat(8, 35mm);
+            gap: 1mm; /* agar tinggi total pas 287mm */
+            justify-content: center;
+            align-content: start;
+        }
+
+        /* Modern Voucher Card Design */
+        .voucher-card {
+            border: 2px solid #e0e7ff;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 6px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .voucher-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .voucher-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+        }
+
+        /* Voucher Header */
+        .voucher-header {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .voucher-logo {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 4px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .voucher-title {
+            font-size: 10px;
+            font-weight: bold;
+            color: #1e293b;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Agent name */
+        .agent-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .price-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: #f97316;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .price-badge .small {
+            font-weight: 600;
+            font-size: 9px;
+            opacity: 0.95;
+        }
+
+        .price-badge .main {
+            font-size: 18px;
+            font-weight: 900;
+            margin-right: 6px;
+        }
+
+        .active-badge {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: #0ea5e9;
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        /* Voucher Body */
+        .voucher-body {
+            flex: 1;
+            text-align: center;
+        }
+
+        .profile-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            margin-bottom: 6px;
+        }
+
+        .profile-name {
+            font-size: 9px;
+            font-weight: 600;
+            color: #3b82f6;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .duration-info {
+            font-size: 8px;
+            color: #64748b;
+            margin: 2px 0;
+        }
+
+        .credentials-section {
+            margin: 6px 0;
+        }
+
+        .credential-label {
+            font-size: 7px;
+            color: #64748b;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .credential-value {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            font-weight: bold;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 3px;
+            letter-spacing: 1px;
+            word-break: break-all;
+        }
+
+        /* Big voucher code */
+        .voucher-code {
+            font-family: 'Courier New', monospace;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            background: #ffffff;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 10px;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+            line-height: 1.1;
+        }
+
+        /* Voucher Footer */
+        .voucher-footer {
+            text-align: center;
+            font-size: 6px;
+            color: #94a3b8;
+            line-height: 1.2;
+        }
+
+        .customer-info {
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin-bottom: 3px;
+            font-size: 6px;
+            color: #059669;
+        }
+
+        /* Decorative Elements */
+        .voucher-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, transparent, rgba(139, 92, 246, 0.1));
+            border-radius: 50% 0 0 0;
+        }
+
+        /* Print Controls */
+        .print-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .back-btn {
+            background: #64748b;
+            margin-left: 10px;
+        }
+
+        .back-btn:hover {
+            background: #475569;
+            box-shadow: 0 6px 16px rgba(100, 116, 139, 0.4);
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .voucher-page {
+                width: 100%;
+                padding: 10mm;
+            }
+
+            .print-controls {
+                position: static;
+                margin: 20px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Print Controls -->
+    <div class="print-controls">
+        <button class="print-btn" onclick="window.print()">
+            <i class="fas fa-print"></i> Cetak Voucher
+        </button>
+        <button class="print-btn back-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading" id="loadingState">
+        <div class="spinner"></div>
+        <h4>Mempersiapkan Voucher...</h4>
+        <p>Sedang memuat data voucher untuk dicetak</p>
+    </div>
+
+    <!-- Voucher Print Page -->
+    <div class="voucher-page" id="voucherPage" style="display: none;">
+        <div class="voucher-grid" id="voucherGrid">
+            <!-- Voucher cards will be generated here -->
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let vouchers = [];
+        let printData = null;
+        let currentAgentName = '';
+
+        // Get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Load voucher data
+        async function loadVouchers() {
+            try {
+                showLoading(true);
+
+                // Get voucher IDs from URL parameter
+                const voucherIds = getUrlParameter('ids');
+                if (!voucherIds) {
+                    throw new Error('Tidak ada voucher yang dipilih untuk dicetak');
+                }
+
+                const ids = voucherIds.split(',').map(id => parseInt(id));
+
+                // Get authentication token
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    window.location.href = '/agent-login.html';
+                    return;
+                }
+
+                // Ambil data user untuk menampilkan nama agent pada voucher
+                try {
+                    const meResp = await fetch('/api/auth/me', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (meResp.ok) {
+                        const me = await meResp.json();
+                        if (me && me.success && me.user) {
+                            currentAgentName = me.user.full_name || me.user.username || '';
+                        }
+                    }
+                } catch (e) {
+                    // Abaikan jika gagal, tidak blokir printing
+                }
+
+                // Fetch voucher details (role-aware)
+                // Admin & Agent: gunakan endpoint bersama
+                const response = await fetch('/api/vouchers/print-details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ voucherIds: ids })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Gagal memuat data voucher');
+                }
+
+                const data = await response.json();
+                vouchers = data.vouchers;
+                printData = data.printData;
+
+                renderVouchers();
+
+            } catch (error) {
+                console.error('Error loading vouchers:', error);
+                alert('Error: ' + error.message);
+                goBack();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Render voucher cards
+        function renderVouchers() {
+            const grid = document.getElementById('voucherGrid');
+            grid.innerHTML = '';
+
+            vouchers.forEach(voucher => {
+                const voucherCard = createVoucherCard(voucher);
+                grid.appendChild(voucherCard);
+            });
+
+            // Fill empty slots to maintain grid layout (24 cards per page)
+            const totalCards = 24;
+            const emptySlots = totalCards - vouchers.length;
+            for (let i = 0; i < emptySlots; i++) {
+                const emptyCard = document.createElement('div');
+                emptyCard.className = 'voucher-card';
+                emptyCard.style.visibility = 'hidden';
+                grid.appendChild(emptyCard);
+            }
+
+            document.getElementById('voucherPage').style.display = 'block';
+        }
+
+        // Create voucher card element
+        function createVoucherCard(voucher) {
+            const card = document.createElement('div');
+            card.className = 'voucher-card';
+
+            // Teks kanan atas: tampilkan nama profil (mis. "3K") + harga jual (Rp)
+            const topRightText = `${voucher.profile ? `<span class=\"main\">${voucher.profile}</span>` : ''}${(typeof voucher.selling_price !== 'undefined' && voucher.selling_price !== null) ? ` <span class=\"small\">Rp ${Number(voucher.selling_price).toLocaleString('id-ID')}</span>` : ''}`;
+
+            card.innerHTML = `
+                ${topRightText ? `<div class=\"price-badge\">${topRightText}</div>` : ''}
+                <div class="voucher-header">
+                    <h6 class="voucher-title">VOUCHER WIFI</h6>
+                    ${currentAgentName ? `<div class="agent-name">${currentAgentName}</div>` : ''}
+                </div>
+
+                <div class="voucher-body">
+                    <div class="profile-info">
+                        <h6 class="profile-name">${voucher.profile}</h6>
+                    </div>
+
+                    <div class="credentials-section">
+                        <div class="credential-label">Kode Voucher</div>
+                        <div class="voucher-code">${voucher.username}</div>
+                        <div class="credential-label">Us / Ps</div>
+                        <div class="credential-value">${voucher.username} / ${voucher.password}</div>
+                    </div>
+                </div>
+
+                <div class="voucher-footer">
+                    ${voucher.customer_name ? `<div class="customer-info">Untuk: ${voucher.customer_name}</div>` : ''}
+                    <div>Dicetak: ${new Date().toLocaleDateString('id-ID')}</div>
+                    <div>Agent Voucher WiFi System</div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Show/hide loading state
+        function showLoading(show) {
+            const loading = document.getElementById('loadingState');
+            const page = document.getElementById('voucherPage');
+
+            if (show) {
+                loading.classList.add('show');
+                page.style.display = 'none';
+            } else {
+                loading.classList.remove('show');
+            }
+        }
+
+        // Go back to dashboard
+        function goBack() {
+            window.location.href = '/agent-dashboard.html';
+        }
+
+        // Print function
+        function printVouchers() {
+            window.print();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVouchers();
+        });
+
+        // Handle print event
+        window.addEventListener('beforeprint', function() {
+            console.log('Preparing for print...');
+        });
+
+        window.addEventListener('afterprint', function() {
+            console.log('Print completed');
+        });
+    </script>
+</body>
+</html>

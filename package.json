@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "agent-voucher-wifi",
+  "version": "1.0.0",
+  "description": "Aplikasi manajemen voucher WiFi dengan integrasi WhatsApp dan Mikrotik",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "prod": "NODE_ENV=production node backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install-deps": "npm install @whiskeysockets/baileys qrcode-terminal @hapi/boom pino"
+  },
+  "keywords": [
+    "whatsapp",
+    "voucher",
+    "wifi",
+    "mikrotik",
+    "hotspot"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^6.7.19",
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "node-cron": "^4.2.1",
+    "node-routeros": "^1.6.8",
+    "pino": "^9.9.0",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
