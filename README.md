@@ -214,7 +214,7 @@ npm start
 
 2. **Open WhatsApp Setup Page**
 ```
-http://localhost:3000/whatsapp-setup.html
+http://localhost:3010/whatsapp-setup.html
 ```
 
 3. **Scan QR Code**
@@ -285,7 +285,7 @@ Login: admin / admin123 (change default password)
 
 1. **Access Agent Dashboard**
 ```
-http://localhost:3000/agent-login.html
+http://localhost:3010/agent-login.html
 Login with agent credentials
 ```
 
@@ -473,7 +473,7 @@ docker build -t agent-voucher .
 # Run container
 docker run -d \
   --name agent-voucher \
-  -p 3000:3000 \
+  -p 3010:3010 \
   -v $(pwd)/backend/data:/app/backend/data \
   -v $(pwd)/config.env:/app/config.env \
   agent-voucher
@@ -489,7 +489,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "3010:3010"
     volumes:
       - ./backend/data:/app/backend/data
       - ./config.env:/app/config.env
@@ -545,7 +545,7 @@ module.exports = {
     exec_mode: 'cluster',
     env: {
       NODE_ENV: 'production',
-      PORT: 3000
+      PORT: 3010
     },
     error_file: './logs/err.log',
     out_file: './logs/out.log',
@@ -611,7 +611,7 @@ rm -rf backend/sessions/whatsapp/*
 pm2 restart agent-voucher
 
 # Check WhatsApp setup page
-curl http://localhost:3000/whatsapp-setup.html
+curl http://localhost:3010/whatsapp-setup.html
 ```
 
 #### 🗄️ Database Issues
@@ -699,7 +699,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **Ali Jaya**
 - GitHub: [@alijayanet](https://github.com/alijayanet)
-- Website: [alijayanet.com](https://alijayanet.com)
+- Website: [alijayanet.com](https://alijayanet.net)
 
 ---
 
@@ -735,3 +735,4 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 
 </div>
+
