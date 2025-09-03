@@ -146,7 +146,7 @@ pm2 start ecosystem.config.js
 
 ```bash
 # Server Configuration
-PORT=3000
+PORT=3010
 NODE_ENV=production
 
 # Database
@@ -732,5 +732,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=alijayanet.agent-voucher)
 [![GitHub stars](https://img.shields.io/github/stars/alijayanet/agent-voucher?style=social)](https://github.com/alijayanet/agent-voucher/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/alijayanet/agent-voucher?style=social)](https://github.com/alijayanet/agent-voucher/network/members)
+
 
 </div>
