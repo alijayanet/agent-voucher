@@ -1,4 +1,4 @@
-# 🎫 Agent Voucher WiFi Management System
+# 🎫 Sistem Manajemen Voucher WiFi Agent
 
 <div align="center">
 
@@ -8,73 +8,73 @@
 ![WhatsApp](https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)
 ![Mikrotik](https://img.shields.io/badge/Mikrotik-FF6B35?style=for-the-badge&logo=mikrotik&logoColor=white)
 
-**Modern WiFi Voucher Management System with WhatsApp Integration & Mikrotik Support**
+**Sistem Manajemen Voucher WiFi Modern dengan Integrasi WhatsApp & Dukungan Mikrotik**
 
-[📋 Features](#-features) • [🚀 Quick Start](#-quick-start) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [📱 WhatsApp Setup](#-whatsapp-setup) • [🛠️ Usage](#%EF%B8%8F-usage)
+[📋 Fitur](#-fitur) • [🚀 Mulai Cepat](#-mulai-cepat) • [⚙️ Konfigurasi](#%EF%B8%8F-konfigurasi) • [📱 Setup WhatsApp](#-setup-whatsapp) • [🛠️ Penggunaan](#%EF%B8%8F-penggunaan)
 
 </div>
 
 ---
 
-## 📋 Features
+## 📋 Fitur
 
-### 🎯 Core Features
-- **🎫 Voucher Management** - Create, manage, and track WiFi vouchers
-- **👥 Agent System** - Multi-agent support with role-based access
-- **💰 Balance Management** - Agent balance tracking and deposit requests
-- **📱 WhatsApp Integration** - Automated notifications and bot commands
-- **🌐 Mikrotik Integration** - Direct hotspot user management
-- **🔐 Authentication** - JWT-based security with 2FA support
+### 🎯 Fitur Utama
+- **🎫 Manajemen Voucher** - Buat, kelola, dan lacak voucher WiFi
+- **👥 Sistem Agent** - Dukungan multi-agent dengan akses berbasis peran
+- **💰 Manajemen Saldo** - Pelacakan saldo agent dan permintaan deposit
+- **📱 Integrasi WhatsApp** - Notifikasi otomatis dan perintah bot
+- **🌐 Integrasi Mikrotik** - Manajemen hotspot user langsung
+- **🔐 Autentikasi** - Keamanan berbasis JWT dengan dukungan 2FA
 
-### 💼 Admin Features
-- **📊 Dashboard** - Real-time statistics and analytics
-- **👤 Agent Management** - Add, edit, and manage agents
-- **💳 Deposit Control** - Approve/reject deposit requests
-- **🎛️ Profile Management** - Voucher profiles and pricing
-- **📈 Reports** - Transaction and sales reports
-- **⚙️ Settings** - System configuration and preferences
+### 💼 Fitur Admin
+- **📊 Dashboard** - Statistik dan analitik real-time
+- **👤 Manajemen Agent** - Tambah, edit, dan kelola agent
+- **💳 Kontrol Deposit** - Setujui/tolak permintaan deposit
+- **🎛️ Manajemen Profil** - Profil voucher dan penetapan harga
+- **📈 Laporan** - Laporan transaksi dan penjualan
+- **⚙️ Pengaturan** - Konfigurasi sistem dan preferensi
 
-### 📱 Agent Features
-- **🎫 Generate Vouchers** - Create vouchers for customers
-- **💰 Request Deposits** - Request balance top-ups
-- **📊 Dashboard** - Personal sales statistics
-- **📱 WhatsApp Orders** - Receive orders via WhatsApp
-- **🔐 2FA Login** - Enhanced security with OTP
+### 📱 Fitur Agent
+- **🎫 Generate Voucher** - Buat voucher untuk pelanggan
+- **💰 Request Deposit** - Minta penambahan saldo
+- **📊 Dashboard** - Statistik penjualan personal
+- **📱 Order WhatsApp** - Terima pesanan via WhatsApp
+- **🔐 Login 2FA** - Keamanan tinggi dengan OTP
 
-### 🤖 WhatsApp Bot Features
-- **🛒 Order Processing** - Handle voucher orders automatically
-- **📢 Notifications** - Real-time updates and alerts
-- **💬 Admin Commands** - Manage system via WhatsApp
-- **🎫 Auto-send Vouchers** - Direct voucher delivery to customers
+### 🤖 Fitur Bot WhatsApp
+- **🛒 Proses Pesanan** - Tangani pesanan voucher secara otomatis
+- **📢 Notifikasi** - Update dan alert real-time
+- **💬 Perintah Admin** - Kelola sistem via WhatsApp
+- **🎫 Kirim Voucher Otomatis** - Pengiriman voucher langsung ke pelanggan
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Teknologi yang Digunakan
 
-| Category | Technology |
-|----------|------------|
+| Kategori | Teknologi |
+|----------|-----------|
 | **Backend** | Node.js, Express.js |
 | **Database** | SQLite |
-| **Authentication** | JWT, bcryptjs |
+| **Autentikasi** | JWT, bcryptjs |
 | **WhatsApp** | Baileys (WhatsApp Web API) |
 | **Network** | Mikrotik RouterOS API |
 | **Frontend** | HTML5, CSS3, Bootstrap 5, JavaScript |
-| **Real-time** | WebSocket connections |
+| **Real-time** | Koneksi WebSocket |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Mulai Cepat
 
-### 📋 Prerequisites
+### 📋 Persyaratan
 
 ```bash
-# Required software
+# Software yang dibutuhkan
 Node.js >= 16.0.0
 npm >= 8.0.0
 Git
 ```
 
-### ⚡ One-Command Installation
+### ⚡ Instalasi Satu Perintah
 
 ```bash
 # Clone repository
@@ -91,7 +91,7 @@ node backend/config/migrate.js
 npm start
 ```
 
-### 🔧 Manual Installation Steps
+### 🔧 Langkah Instalasi Manual
 
 #### 1. **Clone Repository**
 ```bash
@@ -104,83 +104,83 @@ cd agent-voucher
 npm install
 ```
 
-#### 3. **Environment Configuration**
+#### 3. **Konfigurasi Environment**
 ```bash
-# Copy environment template
+# Copy template environment
 cp config.env.example config.env
 
-# Edit configuration (see Configuration section below)
+# Edit konfigurasi (lihat bagian Konfigurasi di bawah)
 nano config.env
 ```
 
-#### 4. **Database Setup**
+#### 4. **Setup Database**
 ```bash
-# Initialize database and create tables
+# Inisialisasi database dan buat tabel
 node backend/config/migrate.js
 ```
 
-#### 5. **Create Admin User**
+#### 5. **Buat User Admin**
 ```bash
-# Run admin setup (optional)
+# Jalankan setup admin (opsional)
 node backend/scripts/create-admin.js
 ```
 
-#### 6. **Start Application**
+#### 6. **Jalankan Aplikasi**
 ```bash
-# Development mode
+# Mode development
 npm run dev
 
-# Production mode
+# Mode production
 npm start
 
-# With PM2 (recommended for production)
+# Dengan PM2 (direkomendasikan untuk production)
 npm install -g pm2
 pm2 start ecosystem.config.js
 ```
 
 ---
 
-## ⚙️ Configuration
+## ⚙️ Konfigurasi
 
-### 📝 Environment Variables (config.env)
+### 📝 Variabel Environment (config.env)
 
 ```bash
-# Server Configuration
+# Konfigurasi Server
 PORT=3010
 NODE_ENV=production
 
 # Database
 DATABASE_PATH=./backend/data/voucher_wifi.db
 
-# JWT Security
-JWT_SECRET=your-super-secret-jwt-key-here
+# Keamanan JWT
+JWT_SECRET=kunci-rahasia-jwt-super-aman-anda
 JWT_EXPIRES_IN=7d
 
-# Mikrotik Configuration
+# Konfigurasi Mikrotik
 MIKROTIK_HOST=192.168.1.1
 MIKROTIK_USERNAME=admin
-MIKROTIK_PASSWORD=your-mikrotik-password
+MIKROTIK_PASSWORD=password-mikrotik-anda
 MIKROTIK_PORT=8728
 
-# WhatsApp Configuration
+# Konfigurasi WhatsApp
 WHATSAPP_SESSION_PATH=./backend/sessions/whatsapp
 WHATSAPP_AUTO_CONNECT=true
 
-# Admin Phone Numbers (comma separated)
+# Nomor HP Admin (pisahkan dengan koma)
 ADMIN_PHONES=6281234567890,6289876543210
 
-# Application Settings
-DASHBOARD_URL=https://your-domain.com
+# Pengaturan Aplikasi
+DASHBOARD_URL=https://domain-anda.com
 CLEANUP_INTERVAL=24h
 SESSION_TIMEOUT=30d
 
-# Email Configuration (optional)
+# Konfigurasi Email (opsional)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+SMTP_USER=email-anda@gmail.com
+SMTP_PASS=password-aplikasi-anda
 
-# Upload Configuration
+# Konfigurasi Upload
 MAX_FILE_SIZE=5MB
 UPLOAD_PATH=./backend/uploads
 
@@ -189,13 +189,13 @@ RATE_LIMIT_WINDOW=15m
 RATE_LIMIT_MAX=100
 ```
 
-### 🔐 Security Settings
+### 🔐 Pengaturan Keamanan
 
 ```bash
-# Generate secure JWT secret
+# Generate JWT secret yang aman
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-# Set proper file permissions
+# Set permission file yang tepat
 chmod 600 config.env
 chmod 755 backend/data/
 chmod 644 backend/data/voucher_wifi.db
@@ -203,102 +203,102 @@ chmod 644 backend/data/voucher_wifi.db
 
 ---
 
-## 📱 WhatsApp Setup
+## 📱 Setup WhatsApp
 
-### 🔧 Initial Setup
+### 🔧 Setup Awal
 
-1. **Start Application**
+1. **Jalankan Aplikasi**
 ```bash
 npm start
 ```
 
-2. **Open WhatsApp Setup Page**
+2. **Buka Halaman Setup WhatsApp**
 ```
 http://localhost:3010/whatsapp-setup.html
 ```
 
 3. **Scan QR Code**
-   - Open WhatsApp on your phone
-   - Go to Settings > Linked Devices
-   - Scan the QR code displayed
+   - Buka WhatsApp di HP Anda
+   - Masuk ke Pengaturan > Perangkat Tertaut
+   - Scan QR code yang ditampilkan
 
-4. **Verify Connection**
-   - Check console for "WhatsApp connected" message
-   - Test by sending a message to one of admin phones
+4. **Verifikasi Koneksi**
+   - Cek console untuk pesan "WhatsApp connected"
+   - Test dengan mengirim pesan ke salah satu nomor admin
 
-### 📱 WhatsApp Commands
+### 📱 Perintah WhatsApp
 
-#### 👑 Admin Commands
+#### 👑 Perintah Admin
 ```
-help                    - Show all commands
-list                    - List all agents
-pending                 - Show pending registrations
+help                    - Tampilkan semua perintah
+list                    - Daftar semua agent
+pending                 - Tampilkan registrasi pending
 
-# Agent Management
-daftar [name] [phone]   - Register new agent
-deposit [agent] [amount] - Add deposit to agent
-hapus [agent]           - Delete agent
-edit [agent]            - Edit agent details
+# Manajemen Agent
+daftar [nama] [hp]      - Daftarkan agent baru
+deposit [agent] [jumlah] - Tambah deposit ke agent
+hapus [agent]           - Hapus agent
+edit [agent]            - Edit detail agent
 
-# Deposit Requests
-terima [request_id]     - Approve deposit request
-tolak [request_id] [reason] - Reject deposit request
+# Permintaan Deposit
+terima [request_id]     - Setujui permintaan deposit
+tolak [request_id] [alasan] - Tolak permintaan deposit
 
-# Reports
-laporan [agent]         - Agent report
-status [agent]          - Agent status
+# Laporan
+laporan [agent]         - Laporan agent
+status [agent]          - Status agent
 ```
 
-#### 👤 Agent Commands
+#### 👤 Perintah Agent
 ```
-# Order Vouchers
-order [profile] [qty]   - Order vouchers
-saldo                   - Check balance
-profil                  - Show available profiles
+# Order Voucher
+order [profil] [qty]    - Pesan voucher
+saldo                   - Cek saldo
+profil                  - Tampilkan profil yang tersedia
 
-# Account Management
-info                    - Account information
-help                    - Show commands
+# Manajemen Akun
+info                    - Informasi akun
+help                    - Tampilkan perintah
 ```
 
 ---
 
-## 🛠️ Usage
+## 🛠️ Penggunaan
 
-### 👑 Admin Panel
+### 👑 Panel Admin
 
-1. **Access Admin Dashboard**
+1. **Akses Dashboard Admin**
 ```
-http://localhost:3000
-Login: admin / admin123 (change default password)
+http://localhost:3010
+Login: admin / admin123 (ubah password default)
 ```
 
-2. **Key Features**
-   - **Dashboard**: Overview of sales, agents, and transactions
-   - **Agent Management**: Add, edit, remove agents
-   - **Voucher Profiles**: Configure voucher types and pricing
-   - **Transactions**: View all system transactions
-   - **Deposit Requests**: Approve/reject agent deposit requests
-   - **Settings**: System configuration and preferences
+2. **Fitur Utama**
+   - **Dashboard**: Ringkasan penjualan, agent, dan transaksi
+   - **Manajemen Agent**: Tambah, edit, hapus agent
+   - **Profil Voucher**: Konfigurasi jenis voucher dan harga
+   - **Transaksi**: Lihat semua transaksi sistem
+   - **Request Deposit**: Setujui/tolak permintaan deposit agent
+   - **Pengaturan**: Konfigurasi sistem dan preferensi
 
-### 👤 Agent Panel
+### 👤 Panel Agent
 
-1. **Access Agent Dashboard**
+1. **Akses Dashboard Agent**
 ```
 http://localhost:3010/agent-login.html
-Login with agent credentials
+Login dengan kredensial agent
 ```
 
-2. **Key Features**
-   - **Generate Vouchers**: Create vouchers for customers
-   - **Request Deposits**: Request balance top-ups
-   - **View Statistics**: Personal sales and transaction history
-   - **Profile Management**: Update account information
+2. **Fitur Utama**
+   - **Generate Voucher**: Buat voucher untuk pelanggan
+   - **Request Deposit**: Minta penambahan saldo
+   - **Lihat Statistik**: Riwayat penjualan dan transaksi personal
+   - **Manajemen Profil**: Update informasi akun
 
-### 🎫 Voucher Generation
+### 🎫 Generate Voucher
 
 ```javascript
-// Example: Generate voucher via API
+// Contoh: Generate voucher via API
 POST /api/agent/generate-voucher
 {
   "profileId": 1,
@@ -308,24 +308,24 @@ POST /api/agent/generate-voucher
 }
 ```
 
-### 💰 Deposit Management
+### 💰 Manajemen Deposit
 
 ```javascript
-// Example: Request deposit via API
+// Contoh: Request deposit via API
 POST /api/agent/request-deposit
 {
   "amount": 100000,
   "payment_method": "transfer_bank",
-  "notes": "Transfer from BCA",
+  "notes": "Transfer dari BCA",
   "priority": "normal"
 }
 ```
 
 ---
 
-## 📊 API Documentation
+## 📊 Dokumentasi API
 
-### 🔐 Authentication
+### 🔐 Autentikasi
 ```bash
 # Login
 POST /api/auth/login
@@ -342,89 +342,89 @@ POST /api/auth/login
 }
 ```
 
-### 🎫 Voucher Management
+### 🎫 Manajemen Voucher
 ```bash
-# Get voucher profiles
+# Ambil profil voucher
 GET /api/profiles/active
 
 # Generate voucher
 POST /api/agent/generate-voucher
 Authorization: Bearer {token}
 
-# Get voucher history
+# Ambil riwayat voucher
 GET /api/agent/vouchers?page=1&limit=10
 ```
 
-### 💰 Financial Operations
+### 💰 Operasi Keuangan
 ```bash
 # Request deposit
 POST /api/agent/request-deposit
 Authorization: Bearer {token}
 
-# Get deposit history
+# Ambil riwayat deposit
 GET /api/agent/deposit-requests
 
-# Admin: Approve deposit
+# Admin: Setujui deposit
 POST /api/admin/deposit-requests/approve/{id}
 Authorization: Bearer {admin-token}
 ```
 
 ---
 
-## 🏗️ Project Structure
+## 🏗️ Struktur Proyek
 
 ```
 agent-voucher/
 ├── backend/
 │   ├── config/
-│   │   ├── database.js          # Database configuration
-│   │   └── migrate.js           # Database migrations
+│   │   ├── database.js          # Konfigurasi database
+│   │   └── migrate.js           # Migrasi database
 │   ├── controllers/
-│   │   ├── AuthController.js    # Authentication logic
-│   │   ├── AgentController.js   # Agent operations
-│   │   ├── VoucherController.js # Voucher management
-│   │   └── DepositRequestController.js # Deposit handling
+│   │   ├── AuthController.js    # Logika autentikasi
+│   │   ├── AgentController.js   # Operasi agent
+│   │   ├── VoucherController.js # Manajemen voucher
+│   │   └── DepositRequestController.js # Penanganan deposit
 │   ├── middleware/
-│   │   ├── auth.js              # JWT authentication
-│   │   └── validation.js        # Input validation
+│   │   ├── auth.js              # Autentikasi JWT
+│   │   └── validation.js        # Validasi input
 │   ├── models/
-│   │   ├── User.js              # User model
-│   │   ├── Voucher.js           # Voucher model
-│   │   └── Transaction.js       # Transaction model
+│   │   ├── User.js              # Model user
+│   │   ├── Voucher.js           # Model voucher
+│   │   └── Transaction.js       # Model transaksi
 │   ├── routes/
-│   │   ├── auth.js              # Auth routes
-│   │   ├── agent.js             # Agent routes
-│   │   ├── admin.js             # Admin routes
-│   │   └── vouchers.js          # Voucher routes
+│   │   ├── auth.js              # Route auth
+│   │   ├── agent.js             # Route agent
+│   │   ├── admin.js             # Route admin
+│   │   └── vouchers.js          # Route voucher
 │   ├── services/
-│   │   ├── WhatsAppGateway.js   # WhatsApp integration
-│   │   ├── MikrotikService.js   # Mikrotik API
-│   │   └── EmailService.js      # Email notifications
-│   └── server.js                # Main application entry
+│   │   ├── WhatsAppGateway.js   # Integrasi WhatsApp
+│   │   ├── MikrotikService.js   # API Mikrotik
+│   │   └── EmailService.js      # Notifikasi email
+│   └── server.js                # Entry point aplikasi utama
 ├── public/
-│   ├── index.html               # Admin dashboard
-│   ├── agent-login.html         # Agent login page
-│   ├── agent-dashboard.html     # Agent dashboard
-│   ├── app.js                   # Frontend JavaScript
-│   └── style.css                # Styles
-├── config.env                   # Environment variables
+│   ├── index.html               # Dashboard admin
+│   ├── agent-login.html         # Halaman login agent
+│   ├── agent-dashboard.html     # Dashboard agent
+│   ├── app.js                   # JavaScript frontend
+│   └── style.css                # Gaya CSS
+├── config.env                   # Variabel environment
 ├── package.json                 # Dependencies
-└── README.md                    # This file
+└── README.md                    # File ini
 ```
 
 ---
 
 ## 🔧 Development
 
-### 🛠️ Development Setup
+### 🛠️ Setup Development
 ```bash
 # Install development dependencies
 npm install --include=dev
 
-# Run in development mode with auto-restart
+# Jalankan dalam mode development dengan auto-restart
 npm run dev
 
-# Run tests
+# Jalankan tests
 npm test
 
 # Code linting
@@ -434,30 +434,30 @@ npm run lint
 npm run format
 ```
 
-### 📝 Scripts Available
+### 📝 Script yang Tersedia
 ```bash
-npm start           # Start production server
-npm run dev         # Start development server with nodemon
-npm test            # Run test suite
-npm run lint        # ESLint code checking
-npm run format      # Prettier code formatting
-npm run build       # Build for production
-npm run migrate     # Run database migrations
-npm run seed        # Seed database with sample data
+npm start           # Jalankan server production
+npm run dev         # Jalankan server development dengan nodemon
+npm test            # Jalankan test suite
+npm run lint        # Pengecekan kode ESLint
+npm run format      # Format kode dengan Prettier
+npm run build       # Build untuk production
+npm run migrate     # Jalankan migrasi database
+npm run seed        # Isi database dengan data contoh
 ```
 
 ### 🧪 Testing
 ```bash
-# Run all tests
+# Jalankan semua test
 npm test
 
-# Run specific test file
+# Jalankan file test spesifik
 npm test -- --grep "Auth"
 
-# Run tests with coverage
+# Jalankan test dengan coverage
 npm run test:coverage
 
-# Run integration tests
+# Jalankan integration test
 npm run test:integration
 ```
 
@@ -571,7 +571,7 @@ server {
     ssl_certificate_key /path/to/ssl/key.pem;
     
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3010;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -639,74 +639,74 @@ grep MIKROTIK config.env
 # User needs: api, read, write permissions
 ```
 
-### 📊 Performance Optimization
+### 📊 Optimasi Performa
 
 ```bash
-# Enable gzip compression
-# Add to nginx.conf
+# Aktifkan kompresi gzip
+# Tambahkan ke nginx.conf
 gzip on;
 gzip_vary on;
 gzip_min_length 1024;
 gzip_types text/plain text/css application/json application/javascript;
 
-# Database optimization
+# Optimasi database
 sqlite3 backend/data/voucher_wifi.db "VACUUM;"
 sqlite3 backend/data/voucher_wifi.db "ANALYZE;"
 
-# Monitor performance
+# Monitor performa
 pm2 monit
 ```
 
 ---
 
-## 🤝 Contributing
+## 🤝 Kontribusi
 
-### 🔧 Development Guidelines
+### 🔧 Panduan Development
 
-1. **Fork the repository**
-2. **Create feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit changes**: `git commit -m 'Add amazing feature'`
-4. **Push to branch**: `git push origin feature/amazing-feature`
-5. **Open Pull Request**
+1. **Fork repository**
+2. **Buat feature branch**: `git checkout -b feature/fitur-keren`
+3. **Commit perubahan**: `git commit -m 'Tambah fitur keren'`
+4. **Push ke branch**: `git push origin feature/fitur-keren`
+5. **Buka Pull Request**
 
-### 📝 Code Style
-- Use ESLint configuration provided
-- Follow conventional commit messages
-- Add tests for new features
-- Update documentation
+### 📝 Gaya Kode
+- Gunakan konfigurasi ESLint yang disediakan
+- Ikuti conventional commit messages
+- Tambahkan test untuk fitur baru
+- Update dokumentasi
 
-### 🧪 Testing Guidelines
+### 🧪 Panduan Testing
 ```bash
-# Run tests before committing
+# Jalankan test sebelum commit
 npm test
 
-# Add tests for new features
-# Test files: tests/*.test.js
+# Tambahkan test untuk fitur baru
+# File test: tests/*.test.js
 
-# Integration tests
-# Test files: tests/integration/*.test.js
+# Integration test
+# File test: tests/integration/*.test.js
 ```
 
 ---
 
-## 📄 License
+## 📄 Lisensi
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+Proyek ini dilisensikan di bawah **Lisensi MIT** - lihat file [LICENSE](LICENSE) untuk detailnya.
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Pembuat
 
 **Ali Jaya**
 - GitHub: [@alijayanet](https://github.com/alijayanet)
-- Website: [alijayanet.com](https://alijayanet.net)
+- Website: [alijayanet.com](https://alijayanet.com)
 
 ---
 
-## 🙏 Acknowledgments
+## 🙏 Ucapan Terima Kasih
 
 - [Baileys](https://github.com/WhiskeySockets/Baileys) - WhatsApp Web API
-- [Mikrotik RouterOS API](https://wiki.mikrotik.com/wiki/Manual:API) - Network management
+- [Mikrotik RouterOS API](https://wiki.mikrotik.com/wiki/Manual:API) - Manajemen jaringan
 - [Express.js](https://expressjs.com/) - Web framework
 - [Bootstrap](https://getbootstrap.com/) - UI framework
 
@@ -714,25 +714,23 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 📈 Roadmap
 
-- [ ] **Mobile App** - React Native mobile application
-- [ ] **Multi-language Support** - Internationalization
-- [ ] **Advanced Analytics** - Detailed reporting and charts
-- [ ] **Payment Gateway** - Online payment integration
-- [ ] **Multi-tenant** - Support for multiple organizations
-- [ ] **API Webhooks** - External system integration
-- [ ] **Advanced Security** - Rate limiting, IP whitelisting
-- [ ] **Backup & Restore** - Automated backup system
+- [ ] **Aplikasi Mobile** - Aplikasi mobile React Native
+- [ ] **Dukungan Multi-bahasa** - Internasionalisasi
+- [ ] **Analitik Lanjutan** - Laporan dan grafik detail
+- [ ] **Payment Gateway** - Integrasi pembayaran online
+- [ ] **Multi-tenant** - Dukungan untuk multiple organisasi
+- [ ] **API Webhooks** - Integrasi sistem eksternal
+- [ ] **Keamanan Lanjutan** - Rate limiting, IP whitelisting
+- [ ] **Backup & Restore** - Sistem backup otomatis
 
 ---
 
 <div align="center">
 
-**⭐ Star this repo if you find it helpful!**
+**⭐ Berikan star pada repo ini jika bermanfaat!**
 
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=alijayanet.agent-voucher)
 [![GitHub stars](https://img.shields.io/github/stars/alijayanet/agent-voucher?style=social)](https://github.com/alijayanet/agent-voucher/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/alijayanet/agent-voucher?style=social)](https://github.com/alijayanet/agent-voucher/network/members)
 
-
 </div>
-
