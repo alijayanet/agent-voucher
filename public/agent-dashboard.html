@@ -1996,28 +1996,32 @@
                             successMessage += `\n\n❌ Gagal kirim ke WhatsApp: ${result.whatsapp.error}`;
                         }
                     }
-                    
-                    showAlert(successMessage, 'success');
-                    
+
+                    // Keep a safe copy before reset
+                    const profileForResult = selectedProfile;
+
                     // Store voucher IDs for printing
                     lastGeneratedVouchers = result.vouchers.map(v => v.id);
 
-                    // Reset form
+                    // Hide generate modal early
+                    bootstrap.Modal.getInstance(document.getElementById('generateVoucherModal')).hide();
+
+                    // Show result modal (use preserved profile)
+                    displayVoucherResult(result.vouchers, profileForResult);
+
+                    // Refresh dashboard data
+                    if (typeof loadDashboard === 'function') {
+                        loadDashboard();
+                    }
+
+                    // Single success alert (avoid duplicate)
+                    showAlert(successMessage || 'Voucher berhasil dibuat!', 'success');
+
+                    // Reset form AFTER displaying results
                     document.getElementById('generateVoucherForm').reset();
                     document.getElementById('customerPhone').value = '';
                     selectedProfile = null;
                     document.getElementById('profileDetails').style.display = 'none';
-
-                    // Hide generate modal
-                    bootstrap.Modal.getInstance(document.getElementById('generateVoucherModal')).hide();
-
-                    // Show result modal
-                    displayVoucherResult(result.vouchers, selectedProfile);
-
-                    // Refresh dashboard data
-                    loadDashboard();
-
-                    showAlert('Voucher berhasil dibuat!', 'success');
                 } else {
                     showAlert(result.message || 'Gagal membuat voucher', 'danger');
                 }
