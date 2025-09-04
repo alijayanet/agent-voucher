@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Agent - Voucher WiFi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Login Agent - Voucher WiFi Manager</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -13,15 +18,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .login-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            padding: 40px;
-            width: 100%;
             max-width: 450px;
+            width: 100%;
+            margin: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .login-header {
@@ -32,7 +44,7 @@
         .login-header .logo {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -42,84 +54,67 @@
             font-size: 2rem;
         }
 
+        .login-header h4 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #6c757d;
+            margin: 0;
+        }
+
         .form-control {
-            border-radius: 10px;
-            padding: 12px 20px;
             border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 16px;
             transition: all 0.3s ease;
+            background: #f8f9fa;
         }
 
         .form-control:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background: white;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border: none;
-            border-radius: 10px;
-            padding: 12px 30px;
+            border-radius: 12px;
+            padding: 15px;
             font-weight: 600;
+            font-size: 16px;
             transition: all 0.3s ease;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-secondary {
-            border-radius: 10px;
-            padding: 12px 30px;
+        .text-decoration-none {
+            color: #667eea;
             font-weight: 600;
         }
 
-        .otp-input {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
+        .text-decoration-none:hover {
+            color: #764ba2;
         }
 
-        .otp-input input {
-            width: 50px;
-            height: 50px;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            margin: 0 5px;
-        }
-
-        .otp-input input:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-
-        .timer {
+        .info-text {
             text-align: center;
             color: #6c757d;
             font-size: 0.9rem;
             margin: 10px 0;
-        }
-
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .step {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #e9ecef;
-            margin: 0 5px;
-            transition: all 0.3s ease;
-        }
-
-        .step.active {
-            background: #667eea;
         }
 
         .alert {
@@ -127,241 +122,118 @@
             border: none;
         }
 
-        .phone-input-group {
-            position: relative;
-        }
-
-        .phone-input-group .form-control {
-            padding-left: 50px;
-        }
-
-        .phone-prefix {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-weight: 600;
-            z-index: 5;
-        }
-
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            font-size: 1.2rem;
-        }
-
-        .back-btn:hover {
-            color: white;
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
         }
 
         @media (max-width: 576px) {
-            .login-container {
-                margin: 20px;
+            .login-card {
                 padding: 30px 20px;
+                margin: 10px;
             }
-
-            .otp-input {
-                margin: 15px 0;
-            }
-
-            .otp-input input {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-                margin: 0 3px;
+            
+            .login-header .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">
-        <i class="fas fa-arrow-left me-2"></i>Kembali
-    </a>
-
     <div class="login-container">
-        <!-- Step 1: Username & Password -->
-        <div id="loginStep">
-            <div class="login-header">
-                <div class="logo">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-                <h4>Login Agent</h4>
-                <p class="text-muted">Masukkan username dan password Anda</p>
-            </div>
-
-            <div class="step-indicator" id="loginStepIndicator">
-                <div class="step active"></div>
-                <div class="step"></div>
-            </div>
-
-            <form id="loginForm">
-                <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" placeholder="Masukkan username" required>
+        <div class="login-card">
+            <!-- Login Form -->
+            <div id="loginStep">
+                <div class="login-header">
+                    <div class="logo">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h4>Login Agent</h4>
+                    <p class="text-muted">Masukkan username dan password Anda</p>
                 </div>
 
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" placeholder="Masukkan password" required>
-                </div>
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" placeholder="Masukkan username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Masukkan password" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="loginBtn">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </div>
+                </form>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary" id="loginBtn">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                    </button>
+                <div class="text-center mt-3">
+                    <small class="text-muted">Belum terdaftar? Hubungi admin untuk registrasi</small>
                 </div>
-            </form>
-
-            <div class="text-center mt-3">
-                <small class="text-muted">
-                    Belum terdaftar? Hubungi admin untuk registrasi
-                </small>
             </div>
         </div>
-
-        <!-- Step 2: OTP Verification (2FA) -->
-        <div id="otpStep" style="display: none;">
-            <div class="login-header">
-                <div class="logo">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h4>Verifikasi 2FA</h4>
-                <p class="text-muted">Masukkan kode OTP yang dikirim ke WhatsApp Anda</p>
-            </div>
-
-            <div class="step-indicator">
-                <div class="step"></div>
-                <div class="step active"></div>
-            </div>
-
-            <div class="text-center mb-3">
-                <small class="text-muted">OTP dikirim ke:</small>
-                <div class="fw-bold" id="otpPhoneNumber"></div>
-                <small class="text-muted mt-1">untuk agent: <span id="otpUsername"></span></small>
-            </div>
-
-            <form id="otpForm">
-                <div class="otp-input" id="otpInputs">
-                    <input type="text" maxlength="1" class="otp-digit" data-index="0">
-                    <input type="text" maxlength="1" class="otp-digit" data-index="1">
-                    <input type="text" maxlength="1" class="otp-digit" data-index="2">
-                    <input type="text" maxlength="1" class="otp-digit" data-index="3">
-                    <input type="text" maxlength="1" class="otp-digit" data-index="4">
-                    <input type="text" maxlength="1" class="otp-digit" data-index="5">
-                </div>
-
-                <div class="timer" id="otpTimer">
-                    OTP berlaku selama: <span id="countdown">10:00</span>
-                </div>
-
-                <div class="d-grid mb-3">
-                    <button type="submit" class="btn btn-primary" id="verifyOtpBtn">
-                        <i class="fas fa-check me-2"></i>Verifikasi & Login
-                    </button>
-                </div>
-
-                <div class="text-center">
-                    <button type="button" class="btn btn-link" id="resendOtpBtn" style="display: none;">
-                        <i class="fas fa-redo me-1"></i>Kirim Ulang OTP
-                    </button>
-                    <br>
-                    <button type="button" class="btn btn-secondary btn-sm mt-2" id="backToLoginBtn">
-                        <i class="fas fa-arrow-left me-1"></i>Kembali ke Login
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Alert Container -->
-        <div id="alertContainer"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // Global variables
-        let countdownInterval;
-        let otpTimer;
-        let currentUsername = '';
-        let currentPassword = '';
-
-        // API base URL
-        const API_BASE = '/api';
+        const API_BASE = `${window.location.protocol}//${window.location.hostname}:3010/api`;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            setupEventListeners();
-        });
+            // Check if already logged in
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                window.location.href = 'agent-dashboard.html';
+                return;
+            }
 
-        // Setup event listeners
-        function setupEventListeners() {
             // Login form submission
             document.getElementById('loginForm').addEventListener('submit', handleLoginSubmit);
-
-            // OTP form submission
-            document.getElementById('otpForm').addEventListener('submit', handleOtpSubmit);
-
-            // Back to login button
-            document.getElementById('backToLoginBtn').addEventListener('click', backToLogin);
-
-            // OTP input handling
-            setupOtpInputs();
-
-            // Resend OTP
-            document.getElementById('resendOtpBtn').addEventListener('click', resendOtp);
-        }
+        });
 
         // Handle login form submission
         async function handleLoginSubmit(e) {
             e.preventDefault();
 
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
 
             if (!username || !password) {
                 showAlert('Username dan password harus diisi', 'warning');
                 return;
             }
 
-            currentUsername = username;
-            currentPassword = password;
-
             try {
-                showLoading(true, 'loginBtn');
+                showLoading(true);
 
-                // First try normal login
                 const response = await fetch(`${API_BASE}/auth/login`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ 
-                        username: username, 
-                        password: password 
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
                     })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    // Check if user has 2FA enabled
-                    if (result.requires2FA) {
-                        // Generate and send OTP
-                        await generateLoginOTP(username);
-                    } else {
-                        // Direct login success
-                        localStorage.setItem('authToken', result.token);
-                        showAlert('Login berhasil! Mengalihkan...', 'success');
-                        
-                        setTimeout(() => {
-                            window.location.href = '/agent-dashboard';
-                        }, 1000);
-                    }
+                    // Save token and redirect
+                    localStorage.setItem('authToken', result.token);
+                    showAlert('Login berhasil! Mengalihkan...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'agent-dashboard.html';
+                    }, 1000);
                 } else {
                     showAlert(result.message, 'danger');
                 }
@@ -369,275 +241,44 @@
                 console.error('Login error:', error);
                 showAlert('Terjadi kesalahan saat login', 'danger');
             } finally {
-                showLoading(false, 'loginBtn');
-            }
-        }
-
-        // Generate OTP for login
-        async function generateLoginOTP(username) {
-            try {
-                const response = await fetch(`${API_BASE}/auth/generate-login-otp`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username: username })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showOtpStep(result.data.phone, username);
-                    startCountdown(600); // 10 minutes for 2FA
-                    showAlert('Kode OTP telah dikirim ke WhatsApp Anda', 'success');
-                } else {
-                    showAlert(result.message, 'danger');
-                }
-            } catch (error) {
-                console.error('Generate OTP error:', error);
-                showAlert('Terjadi kesalahan saat mengirim OTP', 'danger');
-            }
-        }
-
-        // Handle OTP form submission (2FA)
-        async function handleOtpSubmit(e) {
-            e.preventDefault();
-
-            const otp = getOtpValue();
-
-            if (otp.length !== 6) {
-                showAlert('Masukkan 6 digit OTP', 'warning');
-                return;
-            }
-
-            try {
-                showLoading(true, 'verifyOtpBtn');
-
-                // Verify OTP and complete login
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: currentUsername,
-                        password: currentPassword,
-                        otp: otp
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Save token
-                    localStorage.setItem('authToken', result.token);
-
-                    showAlert('Login 2FA berhasil! Mengalihkan...', 'success');
-
-                    // Redirect to agent dashboard
-                    setTimeout(() => {
-                        window.location.href = '/agent-dashboard';
-                    }, 1000);
-                } else {
-                    showAlert(result.message, 'danger');
-
-                    // If invalid OTP, show resend button after some attempts
-                    if (result.message.includes('OTP')) {
-                        document.getElementById('resendOtpBtn').style.display = 'block';
-                    }
-                }
-            } catch (error) {
-                console.error('2FA Login error:', error);
-                showAlert('Terjadi kesalahan saat verifikasi 2FA', 'danger');
-            } finally {
-                showLoading(false, 'verifyOtpBtn');
-            }
-        }
-
-        // Setup OTP input handling
-        function setupOtpInputs() {
-            const inputs = document.querySelectorAll('.otp-digit');
-
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', function(e) {
-                    // Allow only numbers
-                    this.value = this.value.replace(/[^0-9]/g, '');
-
-                    // Auto focus next input
-                    if (this.value && index < inputs.length - 1) {
-                        inputs[index + 1].focus();
-                    }
-                });
-
-                input.addEventListener('keydown', function(e) {
-                    // Handle backspace
-                    if (e.key === 'Backspace' && !this.value && index > 0) {
-                        inputs[index - 1].focus();
-                    }
-                });
-
-                input.addEventListener('paste', function(e) {
-                    e.preventDefault();
-                    const paste = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
-                    const digits = paste.split('');
-
-                    digits.forEach((digit, i) => {
-                        if (index + i < inputs.length) {
-                            inputs[index + i].value = digit;
-                        }
-                    });
-
-                    // Focus last filled input
-                    const nextIndex = Math.min(index + digits.length, inputs.length - 1);
-                    inputs[nextIndex].focus();
-                });
-            });
-        }
-
-        // Get OTP value from inputs
-        function getOtpValue() {
-            const inputs = document.querySelectorAll('.otp-digit');
-            let otp = '';
-
-            inputs.forEach(input => {
-                otp += input.value;
-            });
-
-            return otp;
-        }
-
-        // Show OTP step (2FA)
-        function showOtpStep(phone, username) {
-            document.getElementById('loginStep').style.display = 'none';
-            document.getElementById('otpStep').style.display = 'block';
-            document.getElementById('otpPhoneNumber').textContent = phone;
-            document.getElementById('otpUsername').textContent = username;
-
-            // Clear previous OTP values
-            document.querySelectorAll('.otp-digit').forEach(input => {
-                input.value = '';
-            });
-
-            // Focus first OTP input
-            setTimeout(() => {
-                document.querySelector('.otp-digit').focus();
-            }, 100);
-        }
-
-        // Back to login step
-        function backToLogin() {
-            document.getElementById('otpStep').style.display = 'none';
-            document.getElementById('loginStep').style.display = 'block';
-            
-            // Clear countdown
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
-            
-            // Reset step indicators
-            document.querySelectorAll('.step').forEach((step, index) => {
-                if (index === 0) {
-                    step.classList.add('active');
-                } else {
-                    step.classList.remove('active');
-                }
-            });
-        }
-
-        // Start countdown timer
-        function startCountdown(seconds = 600) {
-            let timeLeft = seconds; // Default 10 minutes for 2FA
-            otpTimer = timeLeft;
-
-            countdownInterval = setInterval(() => {
-                const minutes = Math.floor(timeLeft / 60);
-                const secs = timeLeft % 60;
-
-                document.getElementById('countdown').textContent =
-                    `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-                timeLeft--;
-
-                if (timeLeft < 0) {
-                    clearInterval(countdownInterval);
-                    document.getElementById('otpTimer').style.display = 'none';
-                    document.getElementById('resendOtpBtn').style.display = 'block';
-                }
-            }, 1000);
-        }
-
-        // Resend OTP
-        async function resendOtp() {
-            try {
-                showLoading(true, 'resendOtpBtn');
-
-                const response = await fetch(`${API_BASE}/auth/request-otp`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        phone: currentPhone.replace('62', '')
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Reset timer
-                    clearInterval(countdownInterval);
-                    startCountdown();
-                    document.getElementById('otpTimer').style.display = 'block';
-                    document.getElementById('resendOtpBtn').style.display = 'none';
-
-                    // Clear OTP inputs
-                    document.querySelectorAll('.otp-digit').forEach(input => {
-                        input.value = '';
-                    });
-                    document.querySelector('.otp-digit').focus();
-
-                    showAlert('OTP baru berhasil dikirim', 'success');
-                } else {
-                    showAlert(result.message, 'danger');
-                }
-            } catch (error) {
-                console.error('Resend OTP error:', error);
-                showAlert('Terjadi kesalahan saat mengirim ulang OTP', 'danger');
-            } finally {
-                showLoading(false, 'resendOtpBtn');
+                showLoading(false);
             }
         }
 
         // Show loading state
-        function showLoading(loading, buttonId) {
-            const button = document.getElementById(buttonId);
-            const originalText = button.innerHTML;
-
-            if (loading) {
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+        function showLoading(show) {
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (show) {
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Login...';
             } else {
-                button.disabled = false;
-                button.innerHTML = originalText;
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Login';
             }
         }
 
-        // Show alert
-        function showAlert(message, type) {
-            const alertContainer = document.getElementById('alertContainer');
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+        // Show alert message
+        function showAlert(message, type = 'info') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+
+            // Create new alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
 
-            // Auto dismiss after 5 seconds
+            // Add to login card
+            document.querySelector('.login-card').appendChild(alertDiv);
+
+            // Auto remove after 5 seconds
             setTimeout(() => {
-                const alert = alertContainer.querySelector('.alert');
-                if (alert) {
-                    alert.remove();
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
                 }
             }, 5000);
         }

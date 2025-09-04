@@ -1900,68 +1900,14 @@
                         <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Pengaturan Keamanan Login Agent</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="otpLoginEnabled" onchange="toggleOTPLoginSettings()">
-                                    <label class="form-check-label fw-bold" for="otpLoginEnabled">
-                                        <i class="fas fa-lock me-1"></i>Aktifkan 2FA (OTP) untuk Login Agent
-                                    </label>
-                                </div>
-                                <small class="text-muted">OTP akan diminta saat agent login ke dashboard</small>
-                            </div>
-                            <div class="col-md-3" id="otpLengthSection">
-                                <label for="otpLength" class="form-label">Panjang OTP</label>
-                                <select class="form-control" id="otpLength">
-                                    <option value="4">4 Digit</option>
-                                    <option value="6" selected>6 Digit</option>
-                                    <option value="8">8 Digit</option>
-                                </select>
-                                <small class="text-muted">Pilih panjang kode OTP</small>
-                            </div>
-                            <div class="col-md-3" id="otpExpirySection">
-                                <label for="otpExpiry" class="form-label">Waktu Kadaluarsa</label>
-                                <select class="form-control" id="otpExpiry">
-                                    <option value="300">5 Menit</option>
-                                    <option value="600" selected>10 Menit</option>
-                                    <option value="900">15 Menit</option>
-                                    <option value="1800">30 Menit</option>
-                                </select>
-                                <small class="text-muted">Batas waktu OTP berlaku</small>
-                            </div>
-                            <div class="col-md-2" id="otpButtonSection">
-                                <label class="form-label">&nbsp;</label>
-                                <div>
-                                    <button class="btn btn-primary" onclick="saveOTPLoginSettings()">
-                                        <i class="fas fa-save me-1"></i>Simpan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="alert alert-info" id="otpInfo">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    <strong>Cara Kerja 2FA Login:</strong>
-                                    <ul class="mb-0 mt-2">
-                                        <li>Agent login dengan username & password seperti biasa</li>
-                                        <li>Sistem akan kirim kode OTP ke WhatsApp agent</li>
-                                        <li>Agent masukkan kode OTP untuk menyelesaikan login</li>
-                                        <li>OTP berlaku selama waktu yang ditentukan</li>
-                                        <li>Meningkatkan keamanan akses dashboard agent</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-2" id="otpStatusRow">
-                            <div class="col-12">
-                                <div class="alert alert-secondary">
-                                    <i class="fas fa-clock me-1"></i>
-                                    <strong>Status 2FA:</strong> <span id="otpStatusText">Belum dimuat</span> |
-                                    <strong>Panjang OTP:</strong> <span id="otpLengthText">-</span> digit |
-                                    <strong>Kadaluarsa:</strong> <span id="otpExpiryText">-</span> menit
-                                </div>
-                            </div>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Sistem Login:</strong> Username & Password
+                            <br>
+                            <small class="text-muted mt-1 d-block">
+                                Agent dapat login langsung dengan username dan password yang telah didaftarkan.
+                                Tidak diperlukan verifikasi OTP tambahan untuk kemudahan akses.
+                            </small>
                         </div>
                     </div>
                 </div>

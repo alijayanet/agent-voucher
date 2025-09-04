@@ -568,12 +568,81 @@
         <div id="profile" class="section" style="display: none;">
             <div class="row">
                 <div class="col-12">
-                    <h2><i class="fas fa-user me-2"></i>Profil Agent</h2>
-                    <p class="text-muted">Kelola informasi profil Anda</p>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2><i class="fas fa-user me-2"></i>Profil Agent</h2>
+                            <p class="text-muted">Kelola informasi profil Anda</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="showEditProfileModal()">
+                            <i class="fas fa-edit me-1"></i>Edit Profil
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Profile content will be loaded here -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Profil</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Username:</strong></div>
+                                <div class="col-sm-8" id="profileUsername">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Nama Lengkap:</strong></div>
+                                <div class="col-sm-8" id="profileFullName">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Email:</strong></div>
+                                <div class="col-sm-8" id="profileEmail">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>WhatsApp:</strong></div>
+                                <div class="col-sm-8" id="profilePhone">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Saldo:</strong></div>
+                                <div class="col-sm-8" id="profileBalance">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Status:</strong></div>
+                                <div class="col-sm-8" id="profileStatus">-</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Bergabung:</strong></div>
+                                <div class="col-sm-8" id="profileCreatedAt">-</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Login Terakhir:</strong></div>
+                                <div class="col-sm-8" id="profileLastLogin">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Aksi</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary" onclick="showEditProfileModal()">
+                                    <i class="fas fa-edit me-2"></i>Edit Profil
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="showChangePassword()">
+                                    <i class="fas fa-key me-2"></i>Ubah Password
+                                </button>
+                                <button class="btn btn-outline-info" onclick="loadAgentInfo()">
+                                    <i class="fas fa-sync me-2"></i>Refresh Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="profileContent">
                 <div class="text-center">
                     <div class="spinner-border text-primary" role="status">
@@ -778,6 +847,76 @@
         </div>
     </div>
 
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Edit Profil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <div class="mb-3">
+                            <label for="editFullName" class="form-label">Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="editFullName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPhone" class="form-label">Nomor WhatsApp *</label>
+                            <input type="tel" class="form-control" id="editPhone" required placeholder="628xxxxxxxxxx">
+                            <div class="form-text">Format: 628xxxxxxxxxx</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="updateAgentProfile()">
+                        <i class="fas fa-save me-1"></i>Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Ubah Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Password Saat Ini *</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Password Baru *</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="6">
+                            <div class="form-text">Password minimal 6 karakter</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Konfirmasi Password Baru *</label>
+                            <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-warning" onclick="changePassword()">
+                        <i class="fas fa-key me-1"></i>Ubah Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Global variables
@@ -787,13 +926,26 @@
         let lastGeneratedVouchers = []; // Store last generated voucher IDs for printing
 
         // API base URL
-        const API_BASE = '/api';
+        const API_BASE = `${window.location.protocol}//${window.location.hostname}:3010/api`;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🎯 Agent Dashboard loaded!');
             checkAuth();
         });
+
+        // Helper function to format dates
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
 
         // Check authentication
         async function checkAuth() {
@@ -1944,10 +2096,186 @@
 
         function showProfile() {
             showSection('profile');
+            loadUserProfile();
+        }
+
+        // Load user profile data
+        async function loadUserProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    updateProfileDisplay(result.user);
+                } else {
+                    showAlert('Error loading profile: ' + result.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                showAlert('Error loading profile', 'danger');
+            }
+        }
+
+        // Update profile display
+        function updateProfileDisplay(user) {
+            document.getElementById('profileUsername').textContent = user.username || '-';
+            document.getElementById('profileFullName').textContent = user.full_name || '-';
+            document.getElementById('profileEmail').textContent = user.email || '-';
+            document.getElementById('profilePhone').textContent = user.phone || '-';
+            document.getElementById('profileBalance').textContent = `Rp ${(user.balance || 0).toLocaleString('id-ID')}`;
+            document.getElementById('profileStatus').innerHTML = user.is_active ? 
+                '<span class="badge bg-success">Aktif</span>' : 
+                '<span class="badge bg-danger">Nonaktif</span>';
+            document.getElementById('profileCreatedAt').textContent = formatDate(user.created_at) || '-';
+            document.getElementById('profileLastLogin').textContent = formatDate(user.last_login) || '-';
+        }
+
+        // Show edit profile modal
+        function showEditProfileModal() {
+            if (!currentUser) {
+                showAlert('Data user tidak tersedia', 'warning');
+                return;
+            }
+
+            // Populate form with current data
+            document.getElementById('editFullName').value = currentUser.full_name || '';
+            document.getElementById('editEmail').value = currentUser.email || '';
+            document.getElementById('editPhone').value = currentUser.phone || '';
+
+            const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+            modal.show();
+        }
+
+        // Update agent profile
+        async function updateAgentProfile() {
+            try {
+                const fullName = document.getElementById('editFullName').value.trim();
+                const email = document.getElementById('editEmail').value.trim();
+                const phone = document.getElementById('editPhone').value.trim();
+
+                if (!fullName || !phone) {
+                    showAlert('Nama lengkap dan nomor WhatsApp harus diisi', 'warning');
+                    return;
+                }
+
+                if (phone && !/^628\d{9,12}$/.test(phone)) {
+                    showAlert('Format nomor WhatsApp tidak valid. Contoh: 628123456789', 'warning');
+                    return;
+                }
+
+                if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showAlert('Format email tidak valid', 'warning');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email || null,
+                        phone: phone
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Profil berhasil diperbarui!', 'success');
+                    
+                    // Update current user data
+                    currentUser.full_name = fullName;
+                    currentUser.email = email;
+                    currentUser.phone = phone;
+                    
+                    // Update profile display
+                    updateProfileDisplay(currentUser);
+                    
+                    // Update navbar display
+                    document.getElementById('currentUserName').textContent = fullName;
+                    
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+                } else {
+                    showAlert('Error: ' + result.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showAlert('Error updating profile', 'danger');
+            }
         }
 
         function showChangePassword() {
-            showAlert('Fitur ubah password akan segera hadir', 'info');
+            const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+            document.getElementById('changePasswordForm').reset();
+            modal.show();
+        }
+
+        // Change password function
+        async function changePassword() {
+            try {
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    showAlert('Semua field password harus diisi', 'warning');
+                    return;
+                }
+                
+                if (newPassword.length < 6) {
+                    showAlert('Password baru minimal 6 karakter', 'warning');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    showAlert('Password baru dan konfirmasi password tidak cocok', 'warning');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/auth/change-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        currentPassword: currentPassword,
+                        newPassword: newPassword,
+                        confirmPassword: confirmPassword
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Password berhasil diubah! Silakan login ulang.', 'success');
+                    
+                    // Clear form
+                    document.getElementById('changePasswordForm').reset();
+                    
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+                    
+                    // Logout user after password change
+                    setTimeout(() => {
+                        logout();
+                    }, 2000);
+                } else {
+                    showAlert('Error: ' + result.message, 'danger');
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                showAlert('Error changing password', 'danger');
+            }
         }
 
         function logout() {

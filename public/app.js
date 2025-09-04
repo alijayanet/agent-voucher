@@ -376,7 +376,6 @@ function showSection(sectionName) {
                 // Muat status WhatsApp Gateway tanpa memanggil showSection lagi (hindari rekursi)
                 getWhatsAppStatus();
                 loadWhatsAppOrders();
-                loadOTPSettings();
                 break;
         }
         
@@ -1334,7 +1333,7 @@ function showLoading(show) {
     spinner.style.display = show ? 'block' : 'none';
 }
 
-function showAlert(message, type = 'info') {
+function showAlert(message, type = 'info', duration = 5000) {
     // Create alert element
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
@@ -1347,12 +1346,12 @@ function showAlert(message, type = 'info') {
     // Add to page
     document.body.appendChild(alertDiv);
     
-    // Auto remove after 5 seconds
+    // Auto remove after specified duration
     setTimeout(() => {
         if (alertDiv.parentNode) {
             alertDiv.parentNode.removeChild(alertDiv);
         }
-    }, 5000);
+    }, duration);
 }
 
 // Placeholder functions for other sections
@@ -3399,117 +3398,8 @@ function updateAgentStats(stats) {
 // ======================================
 
 // ======================================
-// OTP LOGIN SETTINGS FUNCTIONS (2FA)
+// WHATSAPP GATEWAY FUNCTIONS (SIMPLIFIED)
 // ======================================
-
-// Toggle OTP login settings visibility
-function toggleOTPLoginSettings() {
-    const enabled = document.getElementById('otpLoginEnabled').checked;
-    const lengthSection = document.getElementById('otpLengthSection');
-    const expirySection = document.getElementById('otpExpirySection');
-    const buttonSection = document.getElementById('otpButtonSection');
-    
-    if (enabled) {
-        lengthSection.style.opacity = '1';
-        expirySection.style.opacity = '1';
-        buttonSection.style.opacity = '1';
-        lengthSection.querySelector('select').disabled = false;
-        expirySection.querySelector('select').disabled = false;
-        buttonSection.querySelector('button').disabled = false;
-    } else {
-        lengthSection.style.opacity = '0.5';
-        expirySection.style.opacity = '0.5';
-        buttonSection.style.opacity = '0.5';
-        lengthSection.querySelector('select').disabled = true;
-        expirySection.querySelector('select').disabled = true;
-        buttonSection.querySelector('button').disabled = true;
-    }
-    
-    updateOTPLoginStatus();
-}
-
-// Load OTP login settings
-async function loadOTPSettings() {
-    try {
-        const response = await authenticatedFetch(`${API_BASE}/auth/otp-login-settings`);
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            const settings = result.data;
-            document.getElementById('otpLoginEnabled').checked = settings.enabled || false;
-            document.getElementById('otpLength').value = settings.length || 6;
-            document.getElementById('otpExpiry').value = settings.expiry || 600;
-            
-            toggleOTPLoginSettings();
-            updateOTPLoginStatus();
-        } else {
-            // Default settings
-            document.getElementById('otpLoginEnabled').checked = false;
-            document.getElementById('otpLength').value = 6;
-            document.getElementById('otpExpiry').value = 600;
-            toggleOTPLoginSettings();
-            updateOTPLoginStatus();
-        }
-    } catch (error) {
-        console.error('Error loading OTP login settings:', error);
-        showAlert('Error loading 2FA settings', 'danger');
-    }
-}
-
-// Save OTP login settings
-async function saveOTPLoginSettings() {
-    try {
-        showLoading(true);
-        
-        const enabled = document.getElementById('otpLoginEnabled').checked;
-        const length = parseInt(document.getElementById('otpLength').value);
-        const expiry = parseInt(document.getElementById('otpExpiry').value);
-        
-        const response = await authenticatedFetch(`${API_BASE}/auth/otp-login-settings`, {
-            method: 'POST',
-            body: JSON.stringify({
-                enabled: enabled,
-                length: length,
-                expiry: expiry
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showAlert('Pengaturan 2FA (OTP Login) berhasil disimpan!', 'success');
-            updateOTPLoginStatus();
-        } else {
-            showAlert('Error: ' + (result.message || 'Gagal menyimpan pengaturan 2FA'), 'danger');
-        }
-    } catch (error) {
-        console.error('Error saving OTP login settings:', error);
-        showAlert('Error menyimpan pengaturan 2FA', 'danger');
-    } finally {
-        showLoading(false);
-    }
-}
-
-// Update OTP login status display
-function updateOTPLoginStatus() {
-    const enabled = document.getElementById('otpLoginEnabled').checked;
-    const length = document.getElementById('otpLength').value;
-    const expiry = document.getElementById('otpExpiry').value;
-    
-    document.getElementById('otpStatusText').textContent = enabled ? 'Aktif' : 'Nonaktif';
-    document.getElementById('otpLengthText').textContent = length;
-    document.getElementById('otpExpiryText').textContent = Math.round(expiry / 60);
-    
-    // Update status color
-    const statusRow = document.getElementById('otpStatusRow');
-    const alertDiv = statusRow.querySelector('.alert');
-    
-    if (enabled) {
-        alertDiv.className = 'alert alert-success';
-    } else {
-        alertDiv.className = 'alert alert-secondary';
-    }
-}
 
 function showWhatsAppOrderModal() {
     // Clear form
@@ -4000,7 +3890,6 @@ function showWhatsAppGateway() {
         
         getWhatsAppStatus();
         loadWhatsAppOrders();
-        loadOTPSettings();
     }, 100);
 }
 

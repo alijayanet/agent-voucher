@@ -5,12 +5,10 @@ const router = express.Router();
 
 // Public routes (tidak perlu login)
 router.post('/login', AuthController.login);
-router.post('/request-otp', AuthController.requestOTP);
-router.post('/login-otp', AuthController.loginWithOTP);
 
 // Protected routes (perlu login)
 router.post('/logout', AuthController.logout);
-router.get('/me', AuthController.me);
+router.get('/me', authenticateToken, AuthController.me);
 router.put('/profile', authenticateToken, AuthController.updateProfile);
 router.post('/change-password', authenticateToken, AuthController.changePassword);
 
@@ -20,11 +18,6 @@ router.get('/users', authenticateToken, requireAdmin, AuthController.getUsers);
 router.put('/users/:id', authenticateToken, requireAdmin, AuthController.updateUser);
 router.delete('/users/:id', authenticateToken, requireAdmin, AuthController.deleteUser);
 
-// OTP Login Settings (2FA) - Admin only
-router.post('/otp-login-settings', authenticateToken, requireAdmin, AuthController.saveOTPLoginSettings);
-router.get('/otp-login-settings', authenticateToken, requireAdmin, AuthController.getOTPLoginSettings);
-
-// Generate OTP for login (public route for agents)
-router.post('/generate-login-otp', AuthController.generateLoginOTP);
+// No OTP routes needed anymore - using simple username/password login
 
 module.exports = router;
