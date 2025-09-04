@@ -917,6 +917,36 @@
         </div>
     </div>
 
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderDetailModalLabel">
+                        <i class="fas fa-receipt me-2"></i>Detail Order
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="orderDetailBody">
+                    <!-- Order detail content will be loaded here -->
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Tutup
+                    </button>
+                    <button type="button" class="btn btn-primary" id="printOrderFromModal" onclick="printCurrentOrder()">
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Global variables
@@ -924,6 +954,7 @@
         let currentUser = null;
         let authToken = null;
         let lastGeneratedVouchers = []; // Store last generated voucher IDs for printing
+        let currentOrderId = null; // Store current order ID for modal actions
 
         // 🔧 UNIVERSAL API BASE - Works on any server/domain
         function getApiBase() {
@@ -1206,12 +1237,16 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('📋 Orders API response:', data);
                     if (data.success) {
+                        console.log(`📊 Received ${data.data.orders?.length || 0} orders`);
                         displayOrdersTable(data.data.orders);
                     } else {
+                        console.log('❌ Orders API returned error:', data.message);
                         showOrdersPlaceholder();
                     }
                 } else {
+                    console.log('❌ Orders API request failed:', response.status);
                     showOrdersPlaceholder();
                 }
             } catch (error) {
@@ -1267,13 +1302,17 @@
                     const customerName = order.customer_name || 'Tidak ada nama';
                     const voucherCount = order.voucher_count || 1;
                     const totalAmount = order.amount || 0;
+                    const profile = order.profile || 'N/A';
+                    
+                    // Debug logging
+                    console.log(`🔍 Order ${order.id} profile:`, profile);
 
                     html += `
                         <tr>
                             <td>#${order.id}</td>
                             <td>${formatDate(order.created_at)}</td>
                             <td>${customerName}</td>
-                            <td>${order.profile || 'N/A'}</td>
+                            <td>${profile}</td>
                             <td>${voucherCount}</td>
                             <td>Rp ${totalAmount.toLocaleString('id-ID')}</td>
                             <td><span class="badge bg-success">${order.status || 'Completed'}</span></td>
@@ -1336,23 +1375,57 @@
         // View order detail (modal)
         async function viewOrderDetail(orderId) {
             try {
+                console.log('🔍 Loading order detail for ID:', orderId);
+                
+                // Show loading in modal first
+                const modalEl = document.getElementById('orderDetailModal');
+                const bodyEl = document.getElementById('orderDetailBody');
+                
+                bodyEl.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Memuat detail order...</p>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                
                 const response = await fetch(`${API_BASE}/agent/orders/${orderId}`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
 
+                console.log('📡 Order detail response status:', response.status);
+
                 if (!response.ok) {
-                    showAlert('Gagal memuat detail order', 'danger');
+                    console.error('❌ Order detail API error:', response.status, response.statusText);
+                    bodyEl.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Gagal memuat detail order (HTTP ${response.status})
+                        </div>
+                    `;
                     return;
                 }
+                
                 const result = await response.json();
+                console.log('📋 Order detail result:', result);
+                
                 if (!result.success) {
-                    showAlert(result.message || 'Gagal memuat detail order', 'danger');
+                    console.error('❌ Order detail failed:', result.message);
+                    bodyEl.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            ${result.message || 'Gagal memuat detail order'}
+                        </div>
+                    `;
                     return;
                 }
 
                 const { order, vouchers } = result.data;
-                const modalEl = document.getElementById('orderDetailModal');
-                const bodyEl = document.getElementById('orderDetailBody');
+                console.log('✅ Order detail loaded successfully');
 
                 bodyEl.innerHTML = `
                     <div class="row mb-3">
@@ -1395,11 +1468,31 @@
                     </div>
                 `;
 
-                const modal = new bootstrap.Modal(modalEl);
-                modal.show();
+                // Store current order ID for modal actions
+                currentOrderId = orderId;
             } catch (err) {
-                console.error('viewOrderDetail error:', err);
-                showAlert('Terjadi kesalahan saat memuat detail order', 'danger');
+                console.error('❌ viewOrderDetail error:', err);
+                
+                // Try to show error in modal if it exists, otherwise use alert
+                const bodyEl = document.getElementById('orderDetailBody');
+                if (bodyEl) {
+                    bodyEl.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Error:</strong> ${err.message || 'Terjadi kesalahan saat memuat detail order'}
+                            <br><small class="text-muted">Coba refresh halaman atau hubungi admin</small>
+                        </div>
+                    `;
+                } else {
+                    showAlert('Terjadi kesalahan saat memuat detail order: ' + (err.message || 'Unknown error'), 'danger');
+                }
+            }
+        }
+
+        // Print current order from modal
+        function printCurrentOrder() {
+            if (currentOrderId) {
+                printOrder(currentOrderId);
             }
         }
 

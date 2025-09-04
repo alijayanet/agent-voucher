@@ -125,9 +125,10 @@ class AgentController {
                     t.amount,
                     t.status,
                     t.created_at,
-                    COUNT(v.id) as voucher_count
+                    COUNT(v.id) as voucher_count,
+                    (SELECT profile FROM vouchers WHERE transaction_id = t.id LIMIT 1) as profile
                 FROM transactions t
-                LEFT JOIN vouchers v ON v.agent_id = t.created_by
+                LEFT JOIN vouchers v ON v.transaction_id = t.id
                 WHERE t.created_by = ?
                 GROUP BY t.id
                 ORDER BY t.created_at DESC
@@ -136,8 +137,13 @@ class AgentController {
 
             database.getDb().all(sql, [agentId, limit], (err, rows) => {
                 if (err) {
+                    console.error('❌ getRecentOrders SQL error:', err);
                     reject(err);
                 } else {
+                    console.log(`📋 getRecentOrders: Found ${rows?.length || 0} recent orders for agent ${agentId}`);
+                    if (rows?.length > 0) {
+                        console.log('🔍 Sample recent order profile:', rows[0].profile);
+                    }
                     resolve(rows || []);
                 }
             });
@@ -161,7 +167,7 @@ class AgentController {
                 });
             });
 
-            // Get orders
+            // Get orders with profile information (from first voucher)
             const sql = `
                 SELECT
                     t.id,
@@ -170,7 +176,8 @@ class AgentController {
                     t.amount,
                     t.status,
                     t.created_at,
-                    COUNT(v.id) as voucher_count
+                    COUNT(v.id) as voucher_count,
+                    (SELECT profile FROM vouchers WHERE transaction_id = t.id LIMIT 1) as profile
                 FROM transactions t
                 LEFT JOIN vouchers v ON v.transaction_id = t.id
                 WHERE t.created_by = ?
@@ -181,8 +188,16 @@ class AgentController {
 
             const orders = await new Promise((resolve, reject) => {
                 database.getDb().all(sql, [agentId, limit, offset], (err, rows) => {
-                    if (err) reject(err);
-                    else resolve(rows);
+                    if (err) {
+                        console.error('❌ getOrders SQL error:', err);
+                        reject(err);
+                    } else {
+                        console.log(`📋 getOrders: Found ${rows?.length || 0} orders for agent ${agentId}`);
+                        if (rows?.length > 0) {
+                            console.log('🔍 Sample order profile:', rows[0].profile);
+                        }
+                        resolve(rows);
+                    }
                 });
             });
             
