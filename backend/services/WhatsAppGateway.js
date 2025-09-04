@@ -23,6 +23,7 @@ class WhatsAppGateway {
         this.connectionStatus = 'disconnected';
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
+        this.sentMessages = new Set(); // Track messages sent by bot to prevent self-response
         
         // Ensure session directory exists
         if (!fs.existsSync(this.sessionPath)) {
@@ -137,8 +138,13 @@ class WhatsAppGateway {
             // Handle incoming messages
             this.sock.ev.on('messages.upsert', async (m) => {
                 const msg = m.messages[0];
+                
+                // Enhanced filtering to prevent bot from responding to own messages
                 if (!msg.key.fromMe && msg.message) {
+                    console.log(`📨 Message received from: ${msg.key.remoteJid}, fromMe: ${msg.key.fromMe}`);
                     await this.handleIncomingMessage(msg);
+                } else {
+                    console.log(`🚫 Ignored message - fromMe: ${msg.key.fromMe}, hasMessage: ${!!msg.message}`);
                 }
             });
 
@@ -196,6 +202,35 @@ class WhatsAppGateway {
 
             // Clean message (remove extra spaces, newlines)
             const cleanMessage = message.trim().replace(/\s+/g, ' ');
+            
+            // Skip processing if message looks like a system notification
+            // These are usually sent by the bot itself and should not be processed as commands
+            const systemNotificationPatterns = [
+                /^✅.*[Dd]eposit.*berhasil/i,
+                /^💰.*[Dd]eposit.*telah.*berhasil/i,
+                /^🎯.*[Vv]oucher.*berhasil/i,
+                /^📱.*[Nn]otifikasi/i,
+                /^⏰.*[Ww]aktu:/i,
+                /^💡.*[Tt]erima kasih/i,
+                /^🆔.*Request ID:/i,
+                /^❌.*REQUEST.*REJECTED/i,
+                /^✅.*REQUEST.*APPROVED/i
+            ];
+            
+            for (const pattern of systemNotificationPatterns) {
+                if (pattern.test(cleanMessage)) {
+                    console.log(`🚫 Skipping system notification: ${cleanMessage.substring(0, 50)}...`);
+                    return; // Don't process system notifications as commands
+                }
+            }
+            
+            // Check if this message was recently sent by the bot itself
+            const messageHash = `${phoneNumber}:${cleanMessage.substring(0, 100)}`;
+            if (this.sentMessages.has(messageHash)) {
+                console.log(`🚫 Skipping bot's own message: ${cleanMessage.substring(0, 50)}...`);
+                this.sentMessages.delete(messageHash); // Remove to free memory
+                return;
+            }
 
             // Check if sender is a registered agent
             const agent = await this.findAgentByPhone(phoneNumber);
@@ -1866,9 +1901,21 @@ class WhatsAppGateway {
             const jid = phoneNumber.includes('@s.whatsapp.net') ? 
                        phoneNumber : `${phoneNumber}@s.whatsapp.net`;
 
+            // Track this message to prevent self-response
+            const messageHash = `${phoneNumber}:${message.substring(0, 100)}`;
+            this.sentMessages.add(messageHash);
+            
+            // Clean up old tracked messages (keep only last 100)
+            if (this.sentMessages.size > 100) {
+                const messages = Array.from(this.sentMessages);
+                this.sentMessages.clear();
+                messages.slice(-50).forEach(msg => this.sentMessages.add(msg));
+            }
+
             await this.sock.sendMessage(jid, { text: message });
             
-            console.log(`📤 WhatsApp Reply sent to ${phoneNumber}: ${message}`);
+            console.log(`📤 WhatsApp Reply sent to ${phoneNumber}: ${message.substring(0, 50)}...`);
+            console.log(`🔍 Message tracked: ${messageHash}`);
             return true;
             
         } catch (error) {
