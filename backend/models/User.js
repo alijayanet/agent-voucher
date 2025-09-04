@@ -124,7 +124,14 @@ class UserModel {
     static async verifyToken(token) {
         return new Promise((resolve, reject) => {
             try {
-                console.log('🔍 Verifying token:', token ? `${token.substring(0, 20)}...` : 'None');
+                // 🔧 FIX: Handle "null" string token
+                if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
+                    console.log('❌ Invalid token provided:', token);
+                    resolve({ valid: false, message: 'Invalid token format' });
+                    return;
+                }
+                
+                console.log('🔍 Verifying token:', `${token.substring(0, 20)}...`);
                 
                 const decoded = jwt.verify(token, process.env.JWT_SECRET || 'voucher_wifi_secret_key');
                 console.log('✅ JWT decoded successfully:', { id: decoded.id, username: decoded.username, role: decoded.role });

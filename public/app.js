@@ -1,7 +1,7 @@
 // Main JavaScript file for Voucher WiFi App
 console.log('🚀 Voucher WiFi App JavaScript loaded!');
-console.log('📅 FILE VERSION: 2024-12-03-ADMIN-DROPDOWN-FIX-v3');
-console.log('🔧 FIXED: Admin dropdown change password function');
+console.log('📅 FILE VERSION: 2024-12-03-TOKEN-FIX-v1');
+console.log('🔧 FIXED: Token "null" string handling - Robust authentication');
 
 // IMMEDIATE FUNCTION DEFINITION - CRITICAL FIX
 console.log('🔧 CRITICAL: Setting up showDepositRequestsModal immediately...');
@@ -75,8 +75,30 @@ let authToken = null;
 let isLoadingAgents = false;
 let isLoadingAgentStats = false;
 
-// API base URL
-const API_BASE = '/api';
+// 🔧 UNIVERSAL API BASE - Works on any server/domain
+function getApiBase() {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    
+    // Check if we're on localhost/IP (development)
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+        // Local development - always use port 3010
+        return `${protocol}//${hostname}:3010/api`;
+    } else {
+        // Production domain - check if port is in URL
+        if (port && port !== '80' && port !== '443') {
+            // Custom port specified in URL
+            return `${protocol}//${hostname}:${port}/api`;
+        } else {
+            // Standard port - assume same origin
+            return `${protocol}//${hostname}/api`;
+        }
+    }
+}
+
+const API_BASE = getApiBase();
+console.log('🌐 Universal API_BASE (Admin):', API_BASE);
 
 // Role helpers
 function isAdmin() {
@@ -146,10 +168,17 @@ function setupEventListeners() {
 // Authentication Functions
 async function checkAuthStatus() {
     const token = localStorage.getItem('authToken');
-    if (!token) {
+    
+    // 🔧 FIX: Handle "null" string vs null value
+    if (!token || token === 'null' || token === 'undefined') {
+        console.log('🚫 No valid token found, clearing storage and showing login');
+        localStorage.removeItem('authToken'); // Clean up invalid token
+        authToken = null;
         showLoginModal();
         return;
     }
+    
+    console.log('🔐 Found valid token, validating with server...');
     
     try {
         const response = await fetch(`${API_BASE}/auth/me`, {
@@ -161,8 +190,12 @@ async function checkAuthStatus() {
         const result = await response.json();
         
                         if (result.success) {
+                    // 🔧 FIX: Set authToken variable with proper validation
                     authToken = token;
                     currentUser = result.user;
+                    console.log('✅ Auth validated successfully for user:', result.user.username);
+                    console.log('🔑 AuthToken set:', authToken ? `${authToken.substring(0, 20)}...` : 'NULL');
+                    
                     showUserInterface();
                     loadInitialData();
 
@@ -171,12 +204,15 @@ async function checkAuthStatus() {
                         window.location.href = '/agent-dashboard';
                     }
                 } else {
+                    console.log('❌ Token validation failed:', result.message);
                     localStorage.removeItem('authToken');
+                    authToken = null;
                     showLoginModal();
                 }
     } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('❌ Auth check error:', error);
         localStorage.removeItem('authToken');
+        authToken = null; // 🔧 FIX: Ensure authToken is null on error
         showLoginModal();
     }
 }
@@ -291,11 +327,24 @@ async function authenticatedFetch(url, options = {}) {
         ...options.headers
     };
     
-    if (authToken) {
+    // 🔧 FIX: Robust token validation
+    if (authToken && authToken !== 'null' && authToken !== 'undefined' && authToken.trim() !== '') {
         headers['Authorization'] = `Bearer ${authToken}`;
         console.log('🔑 Auth header added:', `Bearer ${authToken.substring(0, 20)}...`);
     } else {
-        console.warn('⚠️ No auth token available for:', url);
+        console.warn('⚠️ No valid auth token available for:', url);
+        console.warn('🔍 Current authToken value:', authToken);
+        
+        // Try to get fresh token from localStorage
+        const storedToken = localStorage.getItem('authToken');
+        if (storedToken && storedToken !== 'null' && storedToken !== 'undefined' && storedToken.trim() !== '') {
+            authToken = storedToken; // Restore authToken
+            headers['Authorization'] = `Bearer ${authToken}`;
+            console.log('🔄 Restored token from localStorage:', `Bearer ${authToken.substring(0, 20)}...`);
+        } else {
+            console.error('❌ No valid token found, redirecting to login');
+            // Don't redirect here, let the API call fail and handle 401
+        }
     }
     
     console.log('🌐 Fetching URL:', url);
@@ -473,15 +522,15 @@ function updateProfileSelects(mikrotikProfiles = null) {
         console.log(`🔄 Updating select: ${selectId}`);
         
         try {
-            select.innerHTML = '<option value="">Pilih profil voucher...</option>';
-            
-            voucherProfiles.forEach(profile => {
-                const option = document.createElement('option');
-                option.value = profile.name;
-                option.textContent = `${profile.name} - ${formatCurrency(profile.selling_price || 0)} - ${profile.duration}`;
-                option.dataset.profile = JSON.stringify(profile);
-                select.appendChild(option);
-            });
+        select.innerHTML = '<option value="">Pilih profil voucher...</option>';
+        
+        voucherProfiles.forEach(profile => {
+            const option = document.createElement('option');
+            option.value = profile.name;
+            option.textContent = `${profile.name} - ${formatCurrency(profile.selling_price || 0)} - ${profile.duration}`;
+            option.dataset.profile = JSON.stringify(profile);
+            select.appendChild(option);
+        });
             
             console.log(`✅ Successfully updated ${selectId} with ${voucherProfiles.length} profiles`);
         } catch (error) {
@@ -816,13 +865,13 @@ async function showDepositAgentModal() {
                 newBalancePreview.style.display = 'none';
             }
         });
-        
-        // Reset form
+    
+    // Reset form
         document.getElementById('depositAgentForm').reset();
-        
+    
         // Show modal
         const modal = new bootstrap.Modal(document.getElementById('depositAgentModal'));
-        modal.show();
+    modal.show();
         
     } catch (error) {
         console.error('Error loading agents for deposit:', error);
@@ -939,9 +988,9 @@ function renderDepositRequestsTable() {
     
     if (currentRequests.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center">Tidak ada data</td></tr>';
-        return;
-    }
-    
+            return;
+        }
+        
     const priorityText = {
         'normal': 'Normal',
         'urgent': 'Urgent', 
@@ -1008,9 +1057,9 @@ function renderDepositRequestsPagination() {
     
     if (totalPages <= 1) {
         pagination.innerHTML = '';
-        return;
-    }
-    
+            return;
+        }
+        
     let paginationHTML = '';
     
     // Previous button
@@ -3121,7 +3170,7 @@ function showChangePasswordModal() {
         
         const modal = new bootstrap.Modal(modalElement);
         console.log('✅ Modal created, showing...');
-        modal.show();
+    modal.show();
         
     } catch (error) {
         console.error('❌ Error in showChangePasswordModal:', error);
@@ -3744,7 +3793,7 @@ function generateWhatsAppMessage(customerName, vouchers, profile, total, payment
     return message;
 }
 
-// Agent deposit functions  
+// Agent deposit functions
 async function showDepositModal(agentId, username, currentBalance) {
     try {
         // Load full agent data first to get complete information
@@ -3839,8 +3888,8 @@ async function showDepositModal(agentId, username, currentBalance) {
         
         // Reset and show modal
         document.getElementById('depositAgentForm').reset();
-        const modal = new bootstrap.Modal(document.getElementById('depositAgentModal'));
-        modal.show();
+    const modal = new bootstrap.Modal(document.getElementById('depositAgentModal'));
+    modal.show();
         
     } catch (error) {
         console.error('Error showing deposit modal:', error);
@@ -3879,7 +3928,7 @@ async function processDeposit() {
             })
         });
         
-        const result = await response.json();
+            const result = await response.json();
         
         if (response.ok && result.success) {
             const data = result.data;
@@ -3897,15 +3946,15 @@ async function processDeposit() {
             }
             
             showAlert(successMessage, 'success');
-            
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('depositAgentModal'));
-            modal.hide();
-            
-            // Refresh agent data
-            loadAgents();
-            loadAgentStats();
-        } else {
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('depositAgentModal'));
+                modal.hide();
+                
+                // Refresh agent data
+                loadAgents();
+                loadAgentStats();
+            } else {
             showAlert(`Error: ${result.message || 'Gagal memproses deposit'}`, 'danger');
         }
     } catch (error) {
@@ -4155,8 +4204,8 @@ function showWhatsAppGateway() {
         console.log('🔍 WhatsApp section exists:', !!document.getElementById('whatsapp'));
         console.log('🔍 All rows in whatsapp:', document.querySelectorAll('#whatsapp .row').length);
         
-        getWhatsAppStatus();
-        loadWhatsAppOrders();
+    getWhatsAppStatus();
+    loadWhatsAppOrders();
     }, 100);
 }
 

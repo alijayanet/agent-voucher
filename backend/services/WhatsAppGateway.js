@@ -1609,39 +1609,39 @@ class WhatsAppGateway {
                     }
                 } else {
                     // Regular format patterns (non-OTP)
-                    if (match.length === 4 && match[3] && match[3].startsWith('628')) {
-                        // Format dengan nomor: beli [profile] [quantity] [phone]
-                        return {
-                            profile: match[1],
-                            quantity: parseInt(match[2]),
+                if (match.length === 4 && match[3] && match[3].startsWith('628')) {
+                    // Format dengan nomor: beli [profile] [quantity] [phone]
+                    return {
+                        profile: match[1],
+                        quantity: parseInt(match[2]),
                             customerName: `Customer ${match[3]}`,
-                            customerPhone: match[3],
+                        customerPhone: match[3],
                             sendToCustomer: true,
                             isValid: true,
                             requiresOTP: false
-                        };
-                    } else if (match.length === 3) {
-                        // Format tanpa nomor: beli [profile] [quantity]
-                        return {
-                            profile: match[1],
-                            quantity: parseInt(match[2]),
+                    };
+                } else if (match.length === 3) {
+                    // Format tanpa nomor: beli [profile] [quantity]
+                    return {
+                        profile: match[1],
+                        quantity: parseInt(match[2]),
                             customerName: `Customer ${Date.now()}`,
                             customerPhone: null,
                             sendToCustomer: false,
                             isValid: true,
                             requiresOTP: false
-                        };
-                    } else if (match.length === 5) {
-                        // Old format: beli [profile] [quantity] [name] [phone]
-                        return {
-                            profile: match[1],
-                            quantity: parseInt(match[2]),
-                            customerName: match[3].trim(),
-                            customerPhone: match[4],
+                    };
+                } else if (match.length === 5) {
+                    // Old format: beli [profile] [quantity] [name] [phone]
+                    return {
+                        profile: match[1],
+                        quantity: parseInt(match[2]),
+                        customerName: match[3].trim(),
+                        customerPhone: match[4],
                             sendToCustomer: true,
                             isValid: true,
                             requiresOTP: false
-                        };
+                    };
                     }
                 }
             }

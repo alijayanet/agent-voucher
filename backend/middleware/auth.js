@@ -12,9 +12,10 @@ const authenticateToken = async (req, res, next) => {
             console.log('🔐 Auth middleware - Token:', token ? 'Present' : 'Missing');
         }
 
-        if (!token) {
+        // 🔧 FIX: Handle "null" string token
+        if (!token || token === 'null' || token === 'undefined' || token.trim() === '') {
             if (process.env.NODE_ENV !== 'production') {
-                console.log('❌ No token provided');
+                console.log('❌ No valid token provided. Token value:', token);
             }
             return res.status(401).json({
                 success: false,

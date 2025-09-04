@@ -43,12 +43,59 @@ const WhatsAppGateway = require('./services/WhatsAppGateway');
 const app = express();
 const PORT = process.env.PORT || 3000; // Default to 3000
 
-// Middleware
+// 🔧 ENHANCED CORS CONFIGURATION FOR HTTPS PRODUCTION
+function getCorsOrigins() {
+    const corsOrigin = process.env.CORS_ORIGIN;
+    
+    if (corsOrigin) {
+        // If CORS_ORIGIN is set, use it (could be multiple origins separated by comma)
+        if (corsOrigin.includes(',')) {
+            return corsOrigin.split(',').map(origin => origin.trim());
+        }
+        return corsOrigin;
+    }
+    
+    // Default fallback for development
+    return 'http://localhost:3010';
+}
+
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3010',
-    credentials: true
+    origin: getCorsOrigins(),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count']
 };
+
+console.log('🌐 CORS configuration:', corsOptions);
 app.use(cors(corsOptions));
+
+// 🔒 PRODUCTION SECURITY HEADERS
+if (process.env.NODE_ENV === 'production') {
+    app.use((req, res, next) => {
+        // Force HTTPS
+        if (process.env.FORCE_HTTPS === 'true' && req.header('x-forwarded-proto') !== 'https') {
+            res.redirect(`https://${req.header('host')}${req.url}`);
+            return;
+        }
+        
+        // Security headers
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        
+        if (process.env.SECURE_COOKIES === 'true') {
+            res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+        
+        next();
+    });
+    
+    console.log('🔒 Production security headers enabled');
+}
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

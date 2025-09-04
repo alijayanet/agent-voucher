@@ -570,8 +570,8 @@
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <h2><i class="fas fa-user me-2"></i>Profil Agent</h2>
-                            <p class="text-muted">Kelola informasi profil Anda</p>
+                    <h2><i class="fas fa-user me-2"></i>Profil Agent</h2>
+                    <p class="text-muted">Kelola informasi profil Anda</p>
                         </div>
                         <button class="btn btn-primary" onclick="showEditProfileModal()">
                             <i class="fas fa-edit me-1"></i>Edit Profil
@@ -925,8 +925,30 @@
         let authToken = null;
         let lastGeneratedVouchers = []; // Store last generated voucher IDs for printing
 
-        // API base URL
-        const API_BASE = `${window.location.protocol}//${window.location.hostname}:3010/api`;
+        // 🔧 UNIVERSAL API BASE - Works on any server/domain
+        function getApiBase() {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            
+            // Check if we're on localhost/IP (development)
+            if (hostname === 'localhost' || hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+                // Local development - always use port 3010
+                return `${protocol}//${hostname}:3010/api`;
+            } else {
+                // Production domain - check if port is in URL
+                if (port && port !== '80' && port !== '443') {
+                    // Custom port specified in URL
+                    return `${protocol}//${hostname}:${port}/api`;
+                } else {
+                    // Standard port - assume same origin
+                    return `${protocol}//${hostname}/api`;
+                }
+            }
+        }
+        
+        const API_BASE = getApiBase();
+        console.log('🌐 Universal API_BASE:', API_BASE);
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {

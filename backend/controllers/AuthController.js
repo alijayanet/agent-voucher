@@ -60,9 +60,9 @@ class AuthController {
             await UserModel.updateLastLogin(user.id);
             await UserModel.createSession(user.id, token);
 
-            res.json({
-                success: true,
-                message: 'Login berhasil',
+                res.json({
+                    success: true,
+                    message: 'Login berhasil',
                 token: token,
                 user: {
                     id: user.id,
@@ -133,7 +133,7 @@ class AuthController {
             const user = req.user;
             
             console.log('🔍 me() - req.user:', user);
-            
+
             if (!user || !user.id) {
                 console.log('❌ me() - No user or user.id in request');
                 return res.status(401).json({
@@ -152,8 +152,8 @@ class AuthController {
                 });
             }
 
-            res.json({
-                success: true,
+                res.json({
+                    success: true,
                 user: {
                     id: freshUser.id,
                     username: freshUser.username,
@@ -348,11 +348,11 @@ class AuthController {
 
         } catch (error) {
             console.error('Change password error:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error',
-                error: error.message
-            });
+                res.status(500).json({
+                    success: false,
+                    message: 'Internal server error',
+                    error: error.message
+                });
         }
     }
 
