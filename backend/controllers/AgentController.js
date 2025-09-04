@@ -74,13 +74,31 @@ class AgentController {
             database.getDb().get(sql, [agentId, today], (err, row) => {
                 if (err) {
                     reject(err);
-                } else {
+                    return;
+                }
+
+                // Calculate commission from vouchers: sum(selling_price - agent_price)
+                const commissionSql = `
+                    SELECT COALESCE(SUM(
+                        COALESCE(vp.selling_price, 0) - COALESCE(v.agent_price, 0)
+                    ), 0) AS commission
+                    FROM vouchers v
+                    LEFT JOIN voucher_profiles vp ON vp.name = v.profile
+                    WHERE v.agent_id = ? AND DATE(v.created_at) = ?
+                `;
+
+                database.getDb().get(commissionSql, [agentId, today], (cerr, crow) => {
+                    if (cerr) {
+                        reject(cerr);
+                        return;
+                    }
                     resolve({
                         total_orders: row ? row.total_orders : 0,
                         total_amount: row ? row.total_amount : 0,
-                        orders_with_customer: row ? row.orders_with_customer : 0
+                        orders_with_customer: row ? row.orders_with_customer : 0,
+                        commission: crow ? crow.commission : 0
                     });
-                }
+                });
             });
         });
     }
@@ -103,13 +121,34 @@ class AgentController {
             database.getDb().get(sql, [agentId, currentMonth.toString().padStart(2, '0'), currentYear.toString()], (err, row) => {
                 if (err) {
                     reject(err);
-                } else {
+                    return;
+                }
+
+                // Calculate monthly commission from vouchers
+                const commissionSql = `
+                    SELECT COALESCE(SUM(
+                        COALESCE(vp.selling_price, 0) - COALESCE(v.agent_price, 0)
+                    ), 0) AS commission
+                    FROM vouchers v
+                    LEFT JOIN voucher_profiles vp ON vp.name = v.profile
+                    WHERE v.agent_id = ?
+                      AND strftime('%m', v.created_at) = ?
+                      AND strftime('%Y', v.created_at) = ?
+                `;
+
+                database.getDb().get(commissionSql, [agentId, currentMonth.toString().padStart(2, '0'), currentYear.toString()], (cerr, crow) => {
+                    if (cerr) {
+                        reject(cerr);
+                        return;
+                    }
+
                     resolve({
                         total_orders: row ? row.total_orders : 0,
                         total_amount: row ? row.total_amount : 0,
-                        orders_with_customer: row ? row.orders_with_customer : 0
+                        orders_with_customer: row ? row.orders_with_customer : 0,
+                        commission: crow ? crow.commission : 0
                     });
-                }
+                });
             });
         });
     }

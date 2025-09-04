@@ -1110,7 +1110,9 @@
 
                         // Update monthly stats
                         document.getElementById('monthlyOrders').textContent = stats.monthly.total_orders || 0;
-                        document.getElementById('monthlyCommission').textContent = formatCurrency(stats.monthly.total_amount || 0);
+                        // Show commission = selling_price - agent_price (aggregated)
+                        const monthlyCommission = (stats.monthly.commission || 0);
+                        document.getElementById('monthlyCommission').textContent = formatCurrency(monthlyCommission);
                     }
                 }
 
