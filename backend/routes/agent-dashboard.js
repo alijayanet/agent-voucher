@@ -1,5 +1,6 @@
 const express = require('express');
 const AgentController = require('../controllers/AgentController');
+const DepositRequestController = require('../controllers/DepositRequestController');
 const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 
@@ -37,6 +38,12 @@ router.get('/profiles', AgentController.getProfiles);
 
 // Update agent profile
 router.put('/profile', AgentController.updateProfile);
+
+// Request deposit (agent)
+router.post('/request-deposit', DepositRequestController.createDepositRequest);
+
+// Get own deposit requests (agent)
+router.get('/deposit-requests', DepositRequestController.getDepositRequests);
 
 
 // Debug endpoint for testing profiles
