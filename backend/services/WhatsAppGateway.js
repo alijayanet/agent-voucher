@@ -568,9 +568,10 @@ class WhatsAppGateway {
                     `📊 Status: ${existingAgent.is_active ? 'Aktif' : 'Tidak Aktif'}`);
             }
 
-            // Generate username and password
+            // Generate username and secure password
             const username = normalizedPhone.replace(/^62/, '');
-            const password = Math.random().toString(36).slice(-8);
+            const crypto = require('crypto');
+            const password = crypto.randomBytes(4).toString('hex'); // 8 char secure password
 
             // Create user account
             const UserModel = require('../models/User');

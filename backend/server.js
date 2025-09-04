@@ -44,7 +44,11 @@ const app = express();
 const PORT = process.env.PORT || 3000; // Default to 3000
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3010',
+    credentials: true
+};
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

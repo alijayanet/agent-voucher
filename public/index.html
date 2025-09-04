@@ -63,7 +63,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#" onclick="showProfile()"><i class="fas fa-user-edit me-2"></i>Profil</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="showChangePassword()"><i class="fas fa-key me-2"></i>Ubah Password</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="showChangePasswordModal()"><i class="fas fa-key me-2"></i>Ubah Password</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" onclick="doLogout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                         </ul>
@@ -1191,7 +1191,7 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
+    <!-- Edit Voucher Profile Modal (for voucher management) -->
     <div class="modal fade" id="editProfileModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1462,7 +1462,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2><i class="fas fa-user me-2"></i>Profil Pengguna</h2>
                     <div>
-                        <button class="btn btn-outline-primary me-2" onclick="showEditProfileModal()">
+                        <button class="btn btn-outline-primary me-2" onclick="showEditUserProfileModal()">
                             <i class="fas fa-edit me-1"></i>Edit Profil
                         </button>
                         <button class="btn btn-outline-warning" onclick="showChangePasswordModal()">
@@ -1531,12 +1531,12 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
-    <div class="modal fade" id="editProfileModal" tabindex="-1">
+    <!-- Edit User Profile Modal -->
+    <div class="modal fade" id="editUserProfileModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Profil</h5>
+                    <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Edit Profil Pengguna</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">

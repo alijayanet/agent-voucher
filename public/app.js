@@ -1,6 +1,7 @@
 // Main JavaScript file for Voucher WiFi App
 console.log('🚀 Voucher WiFi App JavaScript loaded!');
-console.log('📅 FILE VERSION: 2024-12-03-KELOLA-DEPOSIT-FIX-v2');
+console.log('📅 FILE VERSION: 2024-12-03-ADMIN-DROPDOWN-FIX-v3');
+console.log('🔧 FIXED: Admin dropdown change password function');
 
 // IMMEDIATE FUNCTION DEFINITION - CRITICAL FIX
 console.log('🔧 CRITICAL: Setting up showDepositRequestsModal immediately...');
@@ -709,43 +710,110 @@ async function showDepositAgentModal() {
         const modalBody = document.querySelector('#depositAgentModal .modal-body');
         modalBody.innerHTML = `
             <div class="mb-3">
-                <label class="form-label">Pilih Agent *</label>
+                <label class="form-label"><i class="fas fa-user me-1"></i>Pilih Agent *</label>
                 <select class="form-control" id="selectDepositAgent" required>
                     <option value="">-- Pilih Agent --</option>
                     ${agentSelectHtml}
                 </select>
+                <div class="form-text">Pilih agent yang akan menerima deposit saldo</div>
             </div>
-            <div class="mb-3" id="currentBalanceSection" style="display: none;">
-                <label class="form-label">Saldo Saat Ini</label>
-                <input type="text" class="form-control" id="depositCurrentBalance" readonly>
+            
+            <div id="agentInfoSection" style="display: none;">
+                <div class="card mb-3" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                    <div class="card-body py-2">
+                        <h6 class="card-title mb-2"><i class="fas fa-info-circle me-1 text-primary"></i>Informasi Agent</h6>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <small class="text-muted">Nama Agent:</small>
+                                <div id="selectedAgentName" class="fw-bold">-</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted">Username:</small>
+                                <div id="selectedAgentUsername" class="fw-bold">-</div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-6">
+                                <small class="text-muted">Saldo Saat Ini:</small>
+                                <div id="selectedAgentBalance" class="fw-bold text-primary">-</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted">WhatsApp:</small>
+                                <div id="selectedAgentPhone" class="fw-bold">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+            
             <div class="mb-3">
-                <label for="depositAmount" class="form-label">Jumlah Deposit *</label>
+                <label for="depositAmount" class="form-label"><i class="fas fa-money-bill-wave me-1"></i>Jumlah Deposit *</label>
                 <div class="input-group">
                     <span class="input-group-text">Rp</span>
-                    <input type="number" class="form-control" id="depositAmount" required min="1000" step="1000">
+                    <input type="number" class="form-control" id="depositAmount" required min="1000" step="1000" placeholder="0">
                 </div>
                 <div class="form-text">Minimal deposit Rp 1.000</div>
             </div>
+            
+            <div id="newBalancePreview" class="mb-3" style="display: none;">
+                <div class="alert alert-success py-2">
+                    <small class="text-muted">Saldo setelah deposit:</small>
+                    <div id="previewNewBalance" class="fw-bold text-success">-</div>
+                </div>
+            </div>
+            
             <div class="mb-3">
-                <label for="depositNotes" class="form-label">Catatan</label>
-                <textarea class="form-control" id="depositNotes" rows="2" placeholder="Contoh: Deposit awal, Top up saldo, dll"></textarea>
+                <label for="depositNotes" class="form-label"><i class="fas fa-sticky-note me-1"></i>Catatan</label>
+                <textarea class="form-control" id="depositNotes" rows="2" placeholder="Contoh: Deposit awal, Top up saldo untuk promosi, dll"></textarea>
             </div>
         `;
         
         // Add event listener to agent selection
         const agentSelect = document.getElementById('selectDepositAgent');
+        const agentInfoSection = document.getElementById('agentInfoSection');
+        const newBalancePreview = document.getElementById('newBalancePreview');
+        const depositAmountInput = document.getElementById('depositAmount');
+        
         agentSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            const currentBalanceSection = document.getElementById('currentBalanceSection');
-            const currentBalanceInput = document.getElementById('depositCurrentBalance');
             
             if (selectedOption.value) {
-                const balance = selectedOption.getAttribute('data-balance') || 0;
-                currentBalanceInput.value = `Rp ${parseInt(balance).toLocaleString('id-ID')}`;
-                currentBalanceSection.style.display = 'block';
+                // Extract agent data from option text and attributes
+                const optionText = selectedOption.textContent;
+                const [namePart, balancePart] = optionText.split(' - Saldo: ');
+                const [fullName, username] = namePart.split(' (');
+                const cleanUsername = username ? username.replace(')', '') : '';
+                
+                const balance = parseInt(selectedOption.getAttribute('data-balance') || 0);
+                const phone = selectedOption.getAttribute('data-phone') || 'Tidak ada';
+                
+                // Update agent info
+                document.getElementById('selectedAgentName').textContent = fullName;
+                document.getElementById('selectedAgentUsername').textContent = cleanUsername;
+                document.getElementById('selectedAgentBalance').textContent = `Rp ${balance.toLocaleString('id-ID')}`;
+                document.getElementById('selectedAgentPhone').textContent = phone === '' ? 'Tidak ada' : phone;
+                
+                // Store current balance for calculation
+                agentSelect.dataset.currentBalance = balance;
+                
+                agentInfoSection.style.display = 'block';
             } else {
-                currentBalanceSection.style.display = 'none';
+                agentInfoSection.style.display = 'none';
+                newBalancePreview.style.display = 'none';
+            }
+        });
+        
+        // Add event listener to deposit amount for preview
+        depositAmountInput.addEventListener('input', function() {
+            const currentBalance = parseInt(agentSelect.dataset.currentBalance || 0);
+            const depositAmount = parseInt(this.value || 0);
+            
+            if (agentSelect.value && depositAmount > 0) {
+                const newBalance = currentBalance + depositAmount;
+                document.getElementById('previewNewBalance').textContent = `Rp ${newBalance.toLocaleString('id-ID')}`;
+                newBalancePreview.style.display = 'block';
+            } else {
+                newBalancePreview.style.display = 'none';
             }
         });
         
@@ -2910,8 +2978,9 @@ async function changePassword() {
         const response = await authenticatedFetch(`${API_BASE}/auth/change-password`, {
             method: 'POST',
             body: JSON.stringify({
-                current_password: currentPassword,
-                new_password: newPassword
+                currentPassword: currentPassword,
+                newPassword: newPassword,
+                confirmPassword: confirmPassword
             })
         });
         
@@ -2941,16 +3010,127 @@ async function changePassword() {
     }
 }
 
+// Show edit voucher profile modal (for voucher profiles)
 function showEditProfileModal() {
     const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
     modal.show();
 }
 
-function showChangePasswordModal() {
-    const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
-    document.getElementById('changePasswordForm').reset();
-    modal.show();
+// Show edit user profile modal (for admin user profile)
+function showEditUserProfileModal() {
+    try {
+        // Load current user data first
+        if (!currentUser) {
+            showAlert('Data pengguna tidak tersedia', 'warning');
+            return;
+        }
+        
+        // Populate form with current data
+        document.getElementById('editProfileFullName').value = currentUser.full_name || '';
+        document.getElementById('editProfileEmail').value = currentUser.email || '';
+        
+        const modal = new bootstrap.Modal(document.getElementById('editUserProfileModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Error showing edit user profile modal:', error);
+        showAlert('Error membuka form edit profil', 'danger');
+    }
 }
+
+// Update user profile function
+async function updateUserProfile() {
+    try {
+        const fullName = document.getElementById('editProfileFullName').value.trim();
+        const email = document.getElementById('editProfileEmail').value.trim();
+        
+        if (!fullName) {
+            showAlert('Nama lengkap harus diisi', 'warning');
+            return;
+        }
+        
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showAlert('Format email tidak valid', 'warning');
+            return;
+        }
+        
+        const response = await authenticatedFetch(`${API_BASE}/auth/profile`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                full_name: fullName,
+                email: email || null
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('Profil berhasil diperbarui!', 'success');
+            
+            // Update current user data
+            if (currentUser) {
+                currentUser.full_name = fullName;
+                currentUser.email = email;
+            }
+            
+            // Update navbar display
+            const currentUserNameEl = document.getElementById('currentUserName');
+            if (currentUserNameEl) {
+                currentUserNameEl.textContent = fullName;
+            }
+            
+            // Update profile display if visible
+            updateUserProfileDisplay({
+                full_name: fullName,
+                email: email,
+                username: currentUser?.username,
+                role: currentUser?.role,
+                created_at: currentUser?.created_at,
+                last_login: currentUser?.last_login
+            });
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('editUserProfileModal')).hide();
+            
+        } else {
+            showAlert('Error: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showAlert('Error updating profile', 'danger');
+    }
+}
+
+function showChangePasswordModal() {
+    console.log('🔑 showChangePasswordModal called');
+    try {
+        const modalElement = document.getElementById('changePasswordModal');
+        console.log('🔍 Modal element found:', modalElement);
+        
+        if (!modalElement) {
+            console.error('❌ changePasswordModal element not found');
+            showAlert('Modal change password tidak ditemukan', 'danger');
+            return;
+        }
+        
+        const formElement = document.getElementById('changePasswordForm');
+        console.log('🔍 Form element found:', formElement);
+        
+        if (formElement) {
+            formElement.reset();
+        }
+        
+        const modal = new bootstrap.Modal(modalElement);
+        console.log('✅ Modal created, showing...');
+        modal.show();
+        
+    } catch (error) {
+        console.error('❌ Error in showChangePasswordModal:', error);
+        showAlert('Error membuka modal change password: ' + error.message, 'danger');
+    }
+}
+
+// Ensure function is globally available
+window.showChangePasswordModal = showChangePasswordModal;
 
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -3564,21 +3744,108 @@ function generateWhatsAppMessage(customerName, vouchers, profile, total, payment
     return message;
 }
 
-// Agent deposit functions
-function showDepositModal(agentId, username, currentBalance) {
-    // Match IDs defined in public/index.html deposit modal
-    document.getElementById('depositAgentId').value = agentId;
-    const nameInput = document.getElementById('depositAgentName');
-    if (nameInput) nameInput.value = username;
-    const balanceInput = document.getElementById('depositCurrentBalance');
-    if (balanceInput) balanceInput.value = formatCurrency(currentBalance);
-    document.getElementById('depositAmount').value = '';
-    const notes = document.getElementById('depositNotes');
-    if (notes) notes.value = '';
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('depositAgentModal'));
-    modal.show();
+// Agent deposit functions  
+async function showDepositModal(agentId, username, currentBalance) {
+    try {
+        // Load full agent data first to get complete information
+        const response = await authenticatedFetch(`${API_BASE}/agents`);
+        const result = await response.json();
+        
+        if (!result.success) {
+            showAlert('Gagal memuat data agent: ' + result.message, 'danger');
+            return;
+        }
+        
+        const agents = Array.isArray(result.data) ? result.data : (result.data.agents || result.data.users || result.data.items || []);
+        
+        // Find the specific agent
+        const selectedAgent = agents.find(agent => agent.id == agentId);
+        if (!selectedAgent) {
+            showAlert('Agent tidak ditemukan', 'danger');
+            return;
+        }
+        
+        // Use the enhanced modal content (same as showDepositAgentModal)
+        const modalBody = document.querySelector('#depositAgentModal .modal-body');
+        modalBody.innerHTML = `
+            <div id="agentInfoSection">
+                <div class="card mb-3" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                    <div class="card-body py-2">
+                        <h6 class="card-title mb-2"><i class="fas fa-info-circle me-1 text-primary"></i>Informasi Agent</h6>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <small class="text-muted">Nama Agent:</small>
+                                <div id="selectedAgentName" class="fw-bold">${selectedAgent.full_name}</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted">Username:</small>
+                                <div id="selectedAgentUsername" class="fw-bold">${selectedAgent.username}</div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-6">
+                                <small class="text-muted">Saldo Saat Ini:</small>
+                                <div id="selectedAgentBalance" class="fw-bold text-primary">Rp ${(selectedAgent.balance || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted">WhatsApp:</small>
+                                <div id="selectedAgentPhone" class="fw-bold">${selectedAgent.phone || 'Tidak ada'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <input type="hidden" id="selectDepositAgent" value="${agentId}">
+            
+            <div class="mb-3">
+                <label for="depositAmount" class="form-label"><i class="fas fa-money-bill-wave me-1"></i>Jumlah Deposit *</label>
+                <div class="input-group">
+                    <span class="input-group-text">Rp</span>
+                    <input type="number" class="form-control" id="depositAmount" required min="1000" step="1000" placeholder="0">
+                </div>
+                <div class="form-text">Minimal deposit Rp 1.000</div>
+            </div>
+            
+            <div id="newBalancePreview" class="mb-3" style="display: none;">
+                <div class="alert alert-success py-2">
+                    <small class="text-muted">Saldo setelah deposit:</small>
+                    <div id="previewNewBalance" class="fw-bold text-success">-</div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="depositNotes" class="form-label"><i class="fas fa-sticky-note me-1"></i>Catatan</label>
+                <textarea class="form-control" id="depositNotes" rows="2" placeholder="Contoh: Deposit awal, Top up saldo untuk promosi, dll"></textarea>
+            </div>
+        `;
+        
+        // Add event listener to deposit amount for preview
+        const depositAmountInput = document.getElementById('depositAmount');
+        const newBalancePreview = document.getElementById('newBalancePreview');
+        const currentBalance = selectedAgent.balance || 0;
+        
+        depositAmountInput.addEventListener('input', function() {
+            const depositAmount = parseInt(this.value || 0);
+            
+            if (depositAmount > 0) {
+                const newBalance = currentBalance + depositAmount;
+                document.getElementById('previewNewBalance').textContent = `Rp ${newBalance.toLocaleString('id-ID')}`;
+                newBalancePreview.style.display = 'block';
+            } else {
+                newBalancePreview.style.display = 'none';
+            }
+        });
+        
+        // Reset and show modal
+        document.getElementById('depositAgentForm').reset();
+        const modal = new bootstrap.Modal(document.getElementById('depositAgentModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error showing deposit modal:', error);
+        showAlert('Error memuat form deposit', 'danger');
+    }
 }
 
 async function processDeposit() {

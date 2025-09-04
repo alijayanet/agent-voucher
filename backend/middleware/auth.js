@@ -6,11 +6,16 @@ const authenticateToken = async (req, res, next) => {
         const authHeader = req.headers.authorization;
         const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-        console.log('🔐 Auth middleware - Header:', authHeader);
-        console.log('🔐 Auth middleware - Token:', token ? `${token.substring(0, 20)}...` : 'None');
+        // Remove sensitive logging in production
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('🔐 Auth middleware - Header:', authHeader ? 'Present' : 'Missing');
+            console.log('🔐 Auth middleware - Token:', token ? 'Present' : 'Missing');
+        }
 
         if (!token) {
-            console.log('❌ No token provided');
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('❌ No token provided');
+            }
             return res.status(401).json({
                 success: false,
                 message: 'Access token required'
@@ -18,17 +23,23 @@ const authenticateToken = async (req, res, next) => {
         }
 
         const verification = await UserModel.verifyToken(token);
-        console.log('🔐 Token verification result:', verification);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('🔐 Token verification result:', verification.valid ? 'Valid' : 'Invalid');
+        }
 
         if (!verification.valid) {
-            console.log('❌ Token verification failed:', verification.message);
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('❌ Token verification failed:', verification.message);
+            }
             return res.status(401).json({
                 success: false,
                 message: verification.message || 'Invalid token'
             });
         }
 
-        console.log('✅ Token valid for user:', verification.user.username);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('✅ Token valid for user:', verification.user.username);
+        }
         req.user = verification.user;
         next();
     } catch (error) {
