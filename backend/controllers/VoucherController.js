@@ -43,7 +43,8 @@ class VoucherController {
                         profile: profile.name,
                         agent_price: profile.agent_price,
                         duration: duration,
-                        expiresAt: expiresAt
+                        expiresAt: expiresAt,
+                        voucher_code_length: profile.voucher_code_length
                     });
 
                     // Create user in Mikrotik with session timeout (mulai hitung saat login)
@@ -119,14 +120,15 @@ class VoucherController {
                     profile: profile.name,
                     agent_price: profile.agent_price,
                     duration: profile.duration,
-                    expiresAt: expiresAt
+                    expiresAt: expiresAt,
+                    voucher_code_length: profile.voucher_code_length
                 });
 
                 // Create user in Mikrotik dengan session timeout
                 await mikrotik.createHotspotUser(
                     voucher.username,
                     voucher.password,
-                    'default', // menggunakan profile default
+                    profile.mikrotik_profile_name || profile.name || 'default', // menggunakan profile dari database
                     profile.duration // session-timeout mulai hitung saat login
                 );
 

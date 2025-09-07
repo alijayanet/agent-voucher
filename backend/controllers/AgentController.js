@@ -693,7 +693,7 @@ class AgentController {
                             await mt.createHotspotUser(
                                 username,
                                 password,
-                                profile.mikrotik_profile_name || 'default',
+                                profile.mikrotik_profile_name || profile.name || 'default',
                                 profile.duration
                             );
                             if (!mikrotikInstance) {

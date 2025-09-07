@@ -1,28 +1,66 @@
 const express = require('express');
 const router = express.Router();
+const WhatsAppGateway = require('../services/WhatsAppGateway');
 const WhatsAppController = require('../controllers/WhatsAppController');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// All routes require authentication and admin privileges
-router.use(authenticateToken);
-router.use(requireAdmin);
+// Get WhatsApp status
+router.get('/status', (req, res) => {
+    try {
+        const wa = WhatsAppGateway.getInstance();
+        const status = wa.getStatus();
+        res.json({
+            success: true,
+            data: status
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error getting WhatsApp status',
+            error: error.message
+        });
+    }
+});
 
-// WhatsApp Gateway management routes
+// Initialize WhatsApp connection
 router.post('/initialize', WhatsAppController.initializeGateway);
-router.get('/status', WhatsAppController.getStatus);
-router.get('/qr-code', WhatsAppController.getQRCode);
-router.post('/test-message', WhatsAppController.sendTestMessage);
-router.post('/process-message', WhatsAppController.processIncomingMessage);
-router.get('/help', WhatsAppController.getHelpMessage);
-router.post('/disconnect', WhatsAppController.disconnectGateway);
+
+// Get QR code for WhatsApp connection
+router.get('/qr-code', (req, res) => {
+    try {
+        const wa = WhatsAppGateway.getInstance();
+        const status = wa.getStatus();
+        
+        if (status.qrCodeDataUrl) {
+            res.json({
+                success: true,
+                data: {
+                    qrCodeDataUrl: status.qrCodeDataUrl,
+                    qrCodeText: status.qrCodeText,
+                    connectionStatus: status.connectionStatus
+                }
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: 'No QR code available. WhatsApp may not be initialized.'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error getting QR code',
+            error: error.message
+        });
+    }
+});
+
+// Reset WhatsApp session
 router.post('/reset-session', WhatsAppController.resetSession);
 
-// Order history and statistics
-router.get('/orders', WhatsAppController.getOrderHistory);
-router.get('/agent/:agentId/stats', WhatsAppController.getAgentOrderStats);
+// Disconnect WhatsApp
+router.post('/disconnect', WhatsAppController.disconnectGateway);
 
-// OTP Settings
-router.post('/otp-settings', WhatsAppController.saveOTPSettings);
-router.get('/otp-settings', WhatsAppController.getOTPSettings);
+// Get order history
+router.get('/order-history', WhatsAppController.getOrderHistory);
 
 module.exports = router;

@@ -241,6 +241,25 @@ class VoucherProfileController {
         }
     }
 
+    // Get public voucher profiles (active only)
+    static async getPublicProfiles(req, res) {
+        try {
+            const profiles = await VoucherProfileModel.getPublicProfiles();
+            
+            res.json({
+                success: true,
+                profiles: profiles
+            });
+        } catch (error) {
+            console.error('Error getting public profiles:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+                error: error.message
+            });
+        }
+    }
+
     // Import profiles dari Mikrotik ke database
     static async importMikrotikProfiles(req, res) {
         try {
@@ -315,6 +334,7 @@ class VoucherProfileController {
                         data_limit: null, // Mikrotik doesn't have direct data limit in profile
                         agent_price: agent_price,
                         selling_price: agent_price, // Set selling_price sama dengan agent_price untuk default
+                        mikrotik_profile_name: profile.name, // Set mikrotik_profile_name untuk referensi
                         description: `Imported from Mikrotik - ${profile.name}`,
                         is_active: true
                     });

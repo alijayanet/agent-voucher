@@ -105,6 +105,24 @@ class VoucherProfileModel {
         });
     }
 
+    // Get public voucher profiles (active only)
+    static async getPublicProfiles() {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT id, name, duration, agent_price, selling_price, mikrotik_profile_name, description 
+                        FROM voucher_profiles 
+                        WHERE is_active = TRUE 
+                        ORDER BY selling_price ASC`;
+            
+            database.getDb().all(sql, [], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows || []);
+                }
+            });
+        });
+    }
+
     // Mendapatkan semua profile dengan pagination
     static async getAll(page = 1, limit = 10) {
         return new Promise((resolve, reject) => {

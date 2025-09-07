@@ -201,116 +201,81 @@ class Database {
                         console.log('OTP expires column added successfully');
                     }
                 });
-
-                this.db.run("ALTER TABLE users ADD COLUMN login_attempts INTEGER DEFAULT 0", (err) => {
-                    if (err) {
-                        console.error('Error adding login_attempts column:', err);
-                    } else {
-                        console.log('Login attempts column added successfully');
-                    }
-                });
             } else {
                 console.log('OTP columns already exist');
             }
         });
 
-        // Add agent_id and customer_name columns to vouchers table
-        this.db.get("SELECT * FROM pragma_table_info('vouchers') WHERE name='agent_id'", (err, row) => {
+        // Add phone and address columns to users table
+        this.db.get("SELECT * FROM pragma_table_info('users') WHERE name='phone'", (err, row) => {
             if (err) {
-                console.error('Error checking agent_id column:', err);
+                console.error('Error checking phone column:', err);
                 return;
             }
 
             if (!row) {
-                console.log('Adding agent_id and customer_name columns to vouchers table...');
-                this.db.run("ALTER TABLE vouchers ADD COLUMN agent_id INTEGER REFERENCES users(id)", (err) => {
+                console.log('Adding phone column to users table...');
+                this.db.run("ALTER TABLE users ADD COLUMN phone TEXT", (err) => {
                     if (err) {
-                        console.error('Error adding agent_id column:', err);
+                        console.error('Error adding phone column:', err);
                     } else {
-                        console.log('Agent_id column added successfully');
-                    }
-                });
-
-                this.db.run("ALTER TABLE vouchers ADD COLUMN customer_name TEXT", (err) => {
-                    if (err) {
-                        console.error('Error adding customer_name column:', err);
-                    } else {
-                        console.log('Customer_name column added successfully');
+                        console.log('Phone column added successfully');
                     }
                 });
             } else {
-                console.log('Agent columns already exist in vouchers table');
+                console.log('Phone column already exists');
             }
         });
 
-        // Add transaction_id to vouchers if missing
-        this.db.get("SELECT * FROM pragma_table_info('vouchers') WHERE name='transaction_id'", (err, row) => {
+        this.db.get("SELECT * FROM pragma_table_info('users') WHERE name='address'", (err, row) => {
             if (err) {
-                console.error('Error checking transaction_id column:', err);
+                console.error('Error checking address column:', err);
                 return;
             }
 
             if (!row) {
-                console.log('Adding transaction_id column to vouchers table...');
-                this.db.run("ALTER TABLE vouchers ADD COLUMN transaction_id INTEGER REFERENCES transactions(id)", (err) => {
+                console.log('Adding address column to users table...');
+                this.db.run("ALTER TABLE users ADD COLUMN address TEXT", (err) => {
                     if (err) {
-                        console.error('Error adding transaction_id column:', err);
+                        console.error('Error adding address column:', err);
                     } else {
-                        console.log('transaction_id column added successfully');
-                        this.db.run("CREATE INDEX IF NOT EXISTS idx_vouchers_transaction_id ON vouchers(transaction_id)", (err) => {
-                            if (err) {
-                                console.error('Error creating index on transaction_id:', err);
-                            }
-                        });
+                        console.log('Address column added successfully');
                     }
                 });
+            } else {
+                console.log('Address column already exists');
             }
         });
 
-        // Add voucher_code_length to voucher_profiles if missing
-        this.db.get("SELECT * FROM pragma_table_info('voucher_profiles') WHERE name='voucher_code_length'", (err, row) => {
+        // Create indexes for better performance
+        this.db.run("CREATE INDEX IF NOT EXISTS idx_vouchers_username ON vouchers(username)", (err) => {
             if (err) {
-                console.error('Error checking voucher_code_length column:', err);
-                return;
-            }
-
-            if (!row) {
-                console.log('Adding voucher_code_length column to voucher_profiles table...');
-                this.db.run("ALTER TABLE voucher_profiles ADD COLUMN voucher_code_length INTEGER DEFAULT 4", (err) => {
-                    if (err) {
-                        console.error('Error adding voucher_code_length column:', err);
-                    } else {
-                        console.log('voucher_code_length column added successfully');
-                    }
-                });
+                console.error('Error creating voucher username index:', err);
             }
         });
 
-        // Create agent_registrations table for WhatsApp registration requests
-        const createAgentRegistrationsTable = `
-            CREATE TABLE IF NOT EXISTS agent_registrations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                phone_number TEXT NOT NULL UNIQUE,
-                full_name TEXT NOT NULL,
-                status TEXT DEFAULT 'pending',
-                approved_by INTEGER,
-                approved_at DATETIME,
-                rejected_reason TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
+        this.db.run("CREATE INDEX IF NOT EXISTS idx_vouchers_profile ON vouchers(profile)", (err) => {
+            if (err) {
+                console.error('Error creating voucher profile index:', err);
+            }
+        });
 
-        await new Promise((resolve, reject) => {
-            this.db.run(createAgentRegistrationsTable, (err) => {
-                if (err) {
-                    console.error('❌ Error creating agent_registrations table:', err);
-                    reject(err);
-                } else {
-                    console.log('✅ Agent registrations table created/verified');
-                    resolve();
-                }
-            });
+        this.db.run("CREATE INDEX IF NOT EXISTS idx_vouchers_agent_id ON vouchers(agent_id)", (err) => {
+            if (err) {
+                console.error('Error creating voucher agent_id index:', err);
+            }
+        });
+
+        this.db.run("CREATE INDEX IF NOT EXISTS idx_transactions_voucher_id ON transactions(voucher_id)", (err) => {
+            if (err) {
+                console.error('Error creating transaction voucher_id index:', err);
+            }
+        });
+
+        this.db.run("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)", (err) => {
+            if (err) {
+                console.error('Error creating user username index:', err);
+            }
         });
 
         // Create admin_phones table for dedicated admin phone numbers

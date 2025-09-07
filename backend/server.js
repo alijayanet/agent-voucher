@@ -30,6 +30,7 @@ const mikrotikRoutes = require('./routes/mikrotik');
 const agentManagementRoutes = require('./routes/agents');
 const whatsappRoutes = require('./routes/whatsapp');
 const agentDashboardRoutes = require('./routes/agent-dashboard');
+const ordersRoutes = require('./routes/orders');
 
 // Import database to initialize
 const database = require('./config/database');
@@ -112,10 +113,16 @@ app.use('/api/mikrotik', mikrotikRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 app.use('/api/agent', agentDashboardRoutes);
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/orders', ordersRoutes);
 
 // Print voucher page route
 app.get('/print-vouchers.html', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'print-vouchers.html'));
+});
+
+// Payment success page route
+app.get('/payment-success.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'payment-success.html'));
 });
 
 // Health check endpoint

@@ -43,22 +43,32 @@ class WhatsAppGateway {
     async initialize() {
         try {
             console.log('🔄 Initializing WhatsApp Gateway with Baileys...');
+            console.log('📁 Session path:', this.sessionPath);
             
             const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
+            console.log('✅ Auth state loaded');
             
             this.sock = makeWASocket({
                 auth: state,
                 logger: require('pino')({ level: 'silent' }),
                 browser: ['Mikrotik Voucher WiFi', 'Chrome', '1.0.0']
             });
+            console.log('✅ Socket created');
 
             // Handle connection updates
             this.sock.ev.on('connection.update', async (update) => {
                 const { connection, lastDisconnect, qr } = update;
                 
+                console.log('🔄 Connection update received:', {
+                    connection: connection,
+                    hasQR: !!qr,
+                    qrLength: qr ? qr.length : 0
+                });
+                
                 if (qr) {
                     this.qrCode = qr;
                     console.log('📱 Scan QR Code ini di WhatsApp Anda:');
+                    console.log('🔗 QR Code string length:', qr.length);
                     
                     // Generate QR code data URL untuk dashboard
                     try {
@@ -86,9 +96,22 @@ class WhatsAppGateway {
                     console.log('📝 QR Code text stored for dashboard display');
                     
                     this.connectionStatus = 'qr_ready';
+                    console.log('✅ Connection status updated to qr_ready');
                 }
-
-                if (connection === 'close') {
+                
+                // Handle other connection states
+                if (connection === 'open') {
+                    console.log('✅ WhatsApp connected successfully');
+                    this.isConnected = true;
+                    this.connectionStatus = 'connected';
+                    this.qrCode = null;
+                    this.qrCodeDataUrl = null;
+                    this.qrCodeText = null;
+                } else if (connection === 'close') {
+                    console.log('❌ WhatsApp connection closed');
+                    this.isConnected = false;
+                    this.connectionStatus = 'disconnected';
+                    
                     // Define in outer scope to avoid ReferenceError
                     let shouldReconnect = true;
                     try {
@@ -214,7 +237,11 @@ class WhatsAppGateway {
                 /^💡.*[Tt]erima kasih/i,
                 /^🆔.*Request ID:/i,
                 /^❌.*REQUEST.*REJECTED/i,
-                /^✅.*REQUEST.*APPROVED/i
+                /^✅.*REQUEST.*APPROVED/i,
+                /^🎉.*PEMBELIAN.*VOUCHER.*BERHASIL/i, // Add pattern for successful voucher notifications
+                /^🔐.*Detail Voucher:/i, // Add pattern for voucher details
+                /^👤.*Username:/i, // Add pattern for username line
+                /^🔑.*Password:/i // Add pattern for password line
             ];
             
             for (const pattern of systemNotificationPatterns) {
@@ -298,23 +325,74 @@ class WhatsAppGateway {
                     // Admin commands
                     return await this.handleAdminCommands(phoneNumber, agent, cleanMessage);
                 } else {
-                    // Pesan tidak dikenali
-                    const otpSettings = await this.getOTPSettings();
-                    let helpText = `❌ *Pesan tidak dikenali*\n\n` +
-                        `💡 Ketik "help" untuk melihat perintah yang tersedia.\n`;
+                    // Check if this might be an auto-response to our own message
+                    // If the message contains typical voucher notification elements, don't respond
+                    const voucherNotificationPatterns = [
+                        /voucher/i,
+                        /username/i,
+                        /password/i,
+                        /berhasil/i,
+                        /terima kasih/i,
+                        /pembelian/i,
+                        /kode voucher/i,
+                        /detail voucher/i,
+                        /cara menggunakan/i,
+                        /berlaku sampai/i
+                    ];
                     
-                    if (otpSettings.enabled) {
-                        helpText += `📝 Format order dengan OTP: otp [kode] beli [profile] [jumlah]\n` +
-                            `🔐 Minta OTP: ketik "otp"\n` +
-                            `🔍 Contoh: otp 123456 beli paket1jam 5\n\n` +
-                            `📝 Format order tanpa OTP: beli [profile] [jumlah]\n` +
-                            `🔍 Contoh: beli paket1jam 5`;
-                    } else {
-                        helpText += `📝 Format order: beli [profile] [jumlah]\n` +
-                            `🔍 Contoh: beli paket1jam 5`;
+                    let isLikelyVoucherNotification = false;
+                    for (const pattern of voucherNotificationPatterns) {
+                        if (pattern.test(cleanMessage)) {
+                            isLikelyVoucherNotification = true;
+                            break;
+                        }
                     }
                     
-                    return this.sendReply(phoneNumber, helpText);
+                    if (isLikelyVoucherNotification) {
+                        console.log(`🚫 Skipping likely voucher notification response to ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
+                        return; // Don't send any reply for voucher notifications
+                    }
+                    
+                    // Check for other common auto-responses or non-command messages
+                    const autoResponsePatterns = [
+                        /ok/i,
+                        /terima kasih/i,
+                        /thanks/i,
+                        /oke/i,
+                        /baik/i,
+                        /siap/i,
+                        /ya/i,
+                        /tidak/i,
+                        /no/i,
+                        /yes/i,
+                        /sudah/i,
+                        /belum/i,
+                        /mantap/i,
+                        /bagus/i,
+                        /keren/i,
+                        /👍/,
+                        /👌/,
+                        /😊/,
+                        /😀/,
+                        /🙏/
+                    ];
+                    
+                    let isAutoResponse = false;
+                    for (const pattern of autoResponsePatterns) {
+                        if (pattern.test(cleanMessage)) {
+                            isAutoResponse = true;
+                            break;
+                        }
+                    }
+                    
+                    if (isAutoResponse) {
+                        console.log(`🚫 Ignoring auto-response message from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
+                        return; // Don't send any reply for auto-responses
+                    }
+                    
+                    // For any other unrecognized messages, ignore silently
+                    console.log(`🚫 Ignoring unrecognized message from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
+                    return; // Don't send any reply for unrecognized messages
                 }
             }
 
@@ -504,20 +582,57 @@ class WhatsAppGateway {
                 return await this.handleAdminListAgents(phoneNumber);
             } else if (lowerMessage === 'pending' || lowerMessage === 'registrasi') {
                 return await this.handleAdminPendingRegistrations(phoneNumber);
+            } else if (lowerMessage.startsWith('voucher ') || lowerMessage.startsWith('beli ')) {
+                const parts = message.split(/\s+/);
+                if (parts.length < 3) {
+                    return this.sendReply(phoneNumber, '❌ Format: voucher [profile] [jumlah] [customer_name] [customer_phone]');
+                }
+                const profile = parts[1];
+                const quantity = parseInt(parts[2]);
+                const customerName = parts[3] || 'Admin Customer';
+                const customerPhone = parts[4] || '';
+                return await this.adminCreateVoucher(phoneNumber, profile, quantity, customerName, customerPhone);
             } else {
-                return this.sendReply(phoneNumber,
-                    `❌ Perintah tidak dikenali!\n\n` +
-                    `📝 *Perintah yang tersedia:*\n` +
-                    `• daftar [nama] [nomor] - Daftar agent baru\n` +
-                    `• deposit [nama] [jumlah] - Deposit saldo agent\n` +
-                    `• hapus [nama] - Hapus agent\n` +
-                    `• edit [nama] - Edit agent\n` +
-                    `• laporan [nama] - Laporan agent\n` +
-                    `• status [nama] - Status agent\n` +
-                    `• list - Daftar semua agent\n` +
-                    `• pending - Pendaftaran pending\n` +
-                    `• help - Menu bantuan\n\n` +
-                    `💡 Kirim "help" untuk panduan lengkap.`);
+                // Check if this might be an auto-response or non-command message
+                const autoResponsePatterns = [
+                    /ok/i,
+                    /terima kasih/i,
+                    /thanks/i,
+                    /oke/i,
+                    /baik/i,
+                    /siap/i,
+                    /ya/i,
+                    /tidak/i,
+                    /no/i,
+                    /yes/i,
+                    /sudah/i,
+                    /belum/i,
+                    /mantap/i,
+                    /bagus/i,
+                    /keren/i,
+                    /👍/,
+                    /👌/,
+                    /😊/,
+                    /😀/,
+                    /🙏/
+                ];
+                
+                let isAutoResponse = false;
+                for (const pattern of autoResponsePatterns) {
+                    if (pattern.test(cleanMessage)) {
+                        isAutoResponse = true;
+                        break;
+                    }
+                }
+                
+                if (isAutoResponse) {
+                    console.log(`🚫 Ignoring auto-response message from admin ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
+                    return; // Don't send any reply for auto-responses
+                }
+                
+                // For any other unrecognized admin commands, ignore silently
+                console.log(`🚫 Ignoring unrecognized admin command from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
+                return; // Don't send any reply for unrecognized admin commands
             }
 
         } catch (error) {
@@ -553,6 +668,11 @@ class WhatsAppGateway {
                `📈 *Perintah Status:*\n` +
                `• status [nama_agent]\n` +
                `  Contoh: status Ahmad\n\n` +
+               `🎫 *Perintah Voucher:*\n` +
+               `• voucher [profile] [jumlah] [customer] [phone]\n` +
+               `  Contoh: voucher paket1jam 5 Customer 081234567890\n` +
+               `• beli [profile] [jumlah] [customer] [phone]\n` +
+               `  Contoh: beli paket1hari 3 Ahmad 081234567890\n\n` +
                `📋 *Perintah Lain:*\n` +
                `• list - Daftar semua agent\n` +
                `• pending - Pendaftaran pending\n` +
@@ -723,7 +843,15 @@ class WhatsAppGateway {
                     `💵 Jumlah Deposit: Rp ${amount.toLocaleString('id-ID')}\n` +
                     `💰 Saldo Lama: Rp ${currentBalance.toLocaleString('id-ID')}\n` +
                     `💰 Saldo Baru: Rp ${newBalance.toLocaleString('id-ID')}\n\n` +
-                    `⏰ Waktu: ${new Date().toLocaleString('id-ID')}\n\n` +
+                    `⏰ Waktu: ${new Date().toLocaleString('id-ID', {
+                        timeZone: 'Asia/Jakarta',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })}\n\n` +
                     `💡 Terima kasih atas kerjasamanya!`;
 
                 await this.sendReply(agent.phone, depositMessage);
@@ -1077,12 +1205,16 @@ class WhatsAppGateway {
                     `• admin_tolak [id] - Tolak pendaftaran\n` +
                     `• admin_hapus [id] - Hapus agent\n` +
                     `• admin_topup [id] [jumlah] - Top up saldo\n\n` +
+                    `🎫 *Perintah Voucher:*\n` +
+                    `• admin_voucher [profile] [jumlah] [customer] [phone] - Buat voucher\n` +
+                    `• admin_beli [profile] [jumlah] [customer] [phone] - Buat voucher\n\n` +
                     `📊 *Perintah Laporan:*\n` +
                     `• admin_laporan - Laporan lengkap\n` +
                     `• admin_registrasi - Lihat pendaftaran pending\n\n` +
                     `💡 Contoh:\n` +
                     `• admin_setujui 1\n` +
                     `• admin_topup 5 50000\n` +
+                    `• admin_voucher paket1jam 5 Customer 081234567890\n` +
                     `• admin_hapus 3`);
 
             } else if (lowerMessage === 'admin_lihat_agent' || lowerMessage === 'admin_agents') {
@@ -1127,8 +1259,58 @@ class WhatsAppGateway {
                 const amount = parseInt(parts[2]);
                 return await this.adminTopupAgent(phoneNumber, agentId, amount);
 
+            } else if (lowerMessage.startsWith('admin_voucher') || lowerMessage.startsWith('admin_beli')) {
+                const parts = message.split(/\s+/);
+                if (parts.length < 3) {
+                    return this.sendReply(phoneNumber, '❌ Format: admin_voucher [profile] [jumlah] [customer_name] [customer_phone]');
+                }
+                const profile = parts[1];
+                const quantity = parseInt(parts[2]);
+                const customerName = parts[3] || 'Admin Customer';
+                const customerPhone = parts[4] || '';
+                return await this.adminCreateVoucher(phoneNumber, profile, quantity, customerName, customerPhone);
+
             } else {
-                return this.sendReply(phoneNumber, '❌ Perintah admin tidak dikenali. Kirim "admin_help" untuk bantuan.');
+                // Check if this might be an auto-response or non-command message
+                const autoResponsePatterns = [
+                    /ok/i,
+                    /terima kasih/i,
+                    /thanks/i,
+                    /oke/i,
+                    /baik/i,
+                    /siap/i,
+                    /ya/i,
+                    /tidak/i,
+                    /no/i,
+                    /yes/i,
+                    /sudah/i,
+                    /belum/i,
+                    /mantap/i,
+                    /bagus/i,
+                    /keren/i,
+                    /👍/,
+                    /👌/,
+                    /😊/,
+                    /😀/,
+                    /🙏/
+                ];
+                
+                let isAutoResponse = false;
+                for (const pattern of autoResponsePatterns) {
+                    if (pattern.test(message)) {
+                        isAutoResponse = true;
+                        break;
+                    }
+                }
+                
+                if (isAutoResponse) {
+                    console.log(`🚫 Ignoring auto-response message from admin ${phoneNumber}: ${message.substring(0, 50)}...`);
+                    return; // Don't send any reply for auto-responses
+                }
+                
+                // For any other unrecognized admin commands, ignore silently
+                console.log(`🚫 Ignoring unrecognized admin command from ${phoneNumber}: ${message.substring(0, 50)}...`);
+                return; // Don't send any reply for unrecognized admin commands
             }
 
         } catch (error) {
@@ -1329,6 +1511,104 @@ class WhatsAppGateway {
         } catch (error) {
             console.error('Error topping up agent:', error);
             return this.sendReply(phoneNumber, '❌ Terjadi kesalahan saat top up agent.');
+        }
+    }
+
+    // Admin: Create voucher directly (without balance check)
+    async adminCreateVoucher(phoneNumber, profileName, quantity, customerName, customerPhone) {
+        try {
+            console.log(`👑 Admin creating voucher: ${profileName} x${quantity} for ${customerName}`);
+
+            // Get voucher profile
+            const profile = await this.getVoucherProfile(profileName);
+            if (!profile) {
+                return this.sendReply(phoneNumber,
+                    `❌ Profile voucher "${profileName}" tidak ditemukan.\n\n` +
+                    `💡 Profile yang tersedia:\n` +
+                    `• paket1jam, paket2jam, paket3jam\n` +
+                    `• paket1hari, paket2hari, paket3hari\n` +
+                    `• paket1minggu, paket2minggu\n` +
+                    `• paket1bulan, paket2bulan\n\n` +
+                    `🔍 Contoh: admin_voucher paket1jam 5 Customer 081234567890`);
+            }
+
+            // Create vouchers
+            const vouchers = await this.createVouchers(profile, quantity, null); // null = admin created
+            if (!vouchers || vouchers.length === 0) {
+                return this.sendReply(phoneNumber, '❌ Gagal membuat voucher. Silakan coba lagi.');
+            }
+
+            // Create users in Mikrotik
+            try {
+                const MikrotikAPI = require('../config/mikrotik');
+                const mikrotik = new MikrotikAPI();
+                
+                console.log('🔄 Connecting to Mikrotik for admin voucher creation...');
+                await mikrotik.connect();
+                
+                for (const voucher of vouchers) {
+                    try {
+                        await mikrotik.createHotspotUser(
+                            voucher.username,
+                            voucher.password,
+                            profile.mikrotik_profile_name || profile.name || 'default',
+                            profile.duration
+                        );
+                        console.log(`✅ Mikrotik user created: ${voucher.username}`);
+                    } catch (mikrotikError) {
+                        console.error(`❌ Error creating Mikrotik user ${voucher.username}:`, mikrotikError);
+                        // Continue with other vouchers even if one fails
+                    }
+                }
+                
+                await mikrotik.disconnect();
+                console.log('✅ Mikrotik connection closed');
+            } catch (mikrotikError) {
+                console.error('❌ Error connecting to Mikrotik:', mikrotikError);
+                // Don't fail the whole process if Mikrotik fails
+            }
+
+            // Create transaction record (admin voucher creation - no cost)
+            await this.createTransaction(null, vouchers, customerName, customerPhone, 0);
+
+            // Send voucher to customer if phone provided
+            if (customerPhone && customerPhone.trim()) {
+                try {
+                    const voucherMessage = this.formatVoucherMessage(vouchers, profile, customerName, 'Admin');
+                    await this.sendReply(customerPhone, voucherMessage);
+                    console.log(`✅ Voucher sent to customer ${customerPhone}`);
+                } catch (whatsappError) {
+                    console.error('❌ Error sending voucher to customer:', whatsappError);
+                }
+            }
+
+            // Send confirmation to admin
+            const voucherCodes = vouchers.map(v => v.username).join('\n');
+            const formattedDuration = this.formatDuration(profile.duration);
+            const reply = `✅ *VOUCHER ADMIN BERHASIL DIBUAT!*\n\n` +
+                         `📦 Profile: ${profile.name}\n` +
+                         `🔢 Jumlah: ${quantity}\n` +
+                         `👤 Customer: ${customerName}\n` +
+                         `📱 Nomor: ${customerPhone || 'Tidak ada'}\n\n` +
+                         `🔐 *Kode Voucher:*\n${voucherCodes}\n\n` +
+                         `💰 Harga: GRATIS (Admin)\n` +
+                         `📅 Durasi: ${formattedDuration}\n\n` +
+                         `⏰ Dibuat: ${new Date().toLocaleString('id-ID', {
+                             timeZone: 'Asia/Jakarta',
+                             year: 'numeric',
+                             month: '2-digit',
+                             day: '2-digit',
+                             hour: '2-digit',
+                             minute: '2-digit',
+                             second: '2-digit'
+                         })}\n\n` +
+                         `${customerPhone ? '📱 Voucher sudah dikirim ke customer' : '⚠️ Nomor customer tidak ada, voucher tidak dikirim'}`;
+
+            return this.sendReply(phoneNumber, reply);
+
+        } catch (error) {
+            console.error('Error in adminCreateVoucher:', error);
+            return this.sendReply(phoneNumber, '❌ Terjadi kesalahan saat membuat voucher.');
         }
     }
 
@@ -1702,11 +1982,10 @@ class WhatsAppGateway {
                                     `👤 Nama: ${order.customerName}\n` +
                                     `📦 Paket: ${profile.name}\n` +
                                     `⏰ Durasi: ${profile.duration}\n` +
-                                    `🔑 Username: ${voucherCodes}\n` +
-                                    `🔒 Password: ${voucherCodes}\n\n` +
+                                    `🔑 Kode Voucher: ${voucherCodes}\n\n` +
                                     `📋 Cara menggunakan:\n` +
                                     `1. Connect ke WiFi hotspot\n` +
-                                    `2. Login dengan username & password di atas\n` +
+                                    `2. Login dengan kode voucher di atas sebagai username dan password\n` +
                                     `3. Nikmati internet! 🚀\n\n` +
                                     `_Voucher dari: ${agent.full_name}_`;
 
@@ -1785,13 +2064,69 @@ class WhatsAppGateway {
         }
     }
 
+    // Generate voucher code (numeric with desired length)
+    generateVoucherCode(length = 4) {
+        // Generate numeric code with specified length
+        const min = Math.pow(10, length - 1);
+        const max = Math.pow(10, length) - 1;
+        const code = Math.floor(min + Math.random() * (max - min + 1));
+        return code.toString();
+    }
+
+    // Format duration for display
+    formatDuration(duration) {
+        if (!duration) return 'Tidak ditentukan';
+        
+        const durationStr = duration.toString().toLowerCase();
+        
+        if (durationStr.includes('h')) {
+            const hours = parseInt(durationStr.replace('h', ''));
+            return `${hours} jam`;
+        } else if (durationStr.includes('d')) {
+            const days = parseInt(durationStr.replace('d', ''));
+            return `${days} hari`;
+        } else if (durationStr.includes('w')) {
+            const weeks = parseInt(durationStr.replace('w', ''));
+            return `${weeks} minggu`;
+        } else if (durationStr.includes('m')) {
+            const months = parseInt(durationStr.replace('m', ''));
+            return `${months} bulan`;
+        } else {
+            return duration;
+        }
+    }
+
+    // Format voucher message for customer
+    formatVoucherMessage(vouchers, profile, customerName, createdBy) {
+        const voucherCodes = vouchers.map(v => v.username).join('\n');
+        const formattedDuration = this.formatDuration(profile.duration);
+        const currentTime = new Date().toLocaleString('id-ID', {
+            timeZone: 'Asia/Jakarta',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        return `🎫 *VOUCHER WIFI BERHASIL DIBUAT!*\n\n` +
+               `👤 Customer: ${customerName}\n` +
+               `📦 Profile: ${profile.name}\n` +
+               `📅 Durasi: ${formattedDuration}\n` +
+               `💰 Harga: GRATIS (${createdBy})\n\n` +
+               `🔐 *Kode Voucher:*\n${voucherCodes}\n\n` +
+               `⏰ Dibuat: ${currentTime}\n\n` +
+               `📱 Gunakan kode di atas untuk login WiFi hotspot!`;
+    }
+
     // Create single voucher
     async createSingleVoucher(profile, agentId) {
         try {
             // Generate username with length from profile (default 4)
             const codeLength = Math.max(3, Math.min(12, parseInt(profile.voucher_code_length || 4)));
             const username = this.generateVoucherCode(codeLength);
-            // Password sama dengan username
+            // Password sama dengan username for Mikrotik compatibility
             const password = username;
 
             const sql = `INSERT INTO vouchers (username, password, profile, agent_price, duration, created_at)
@@ -1818,14 +2153,6 @@ class WhatsAppGateway {
             console.error('❌ Error creating single voucher:', error);
             return null;
         }
-    }
-
-    // Generate voucher code (numeric with desired length)
-    generateVoucherCode(length = 4) {
-        const min = Math.pow(10, length - 1);
-        const max = Math.pow(10, length) - 1;
-        const code = Math.floor(min + Math.random() * (max - min + 1));
-        return code.toString();
     }
 
     // Deduct balance from agent
@@ -1893,9 +2220,26 @@ class WhatsAppGateway {
     // Send reply using Baileys
     async sendReply(phoneNumber, message) {
         try {
+            // Check if WhatsApp is connected, if not try to initialize it
             if (!this.sock || !this.isConnected) {
-                console.error('❌ WhatsApp not connected');
-                return false;
+                console.error('❌ WhatsApp not connected - Cannot send message to:', phoneNumber);
+                console.log('🔄 Attempting to reconnect WhatsApp gateway...');
+                
+                try {
+                    // Try to reinitialize the connection
+                    await this.initialize();
+                    
+                    // Wait a bit for connection to establish
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    
+                    if (!this.isConnected) {
+                        console.error('❌ WhatsApp still not connected after reinitialization attempt');
+                        return false;
+                    }
+                } catch (reconnectError) {
+                    console.error('❌ Error reconnecting WhatsApp gateway:', reconnectError);
+                    return false;
+                }
             }
 
             const jid = phoneNumber.includes('@s.whatsapp.net') ? 
@@ -1919,7 +2263,24 @@ class WhatsAppGateway {
             return true;
             
         } catch (error) {
-            console.error('❌ Error sending WhatsApp reply:', error);
+            console.error('❌ Error sending WhatsApp reply to', phoneNumber, ':', error.message);
+            console.error('Error stack:', error.stack);
+            
+            // Try to send with simplified phone number format
+            if (phoneNumber.includes('@s.whatsapp.net')) {
+                const simplifiedPhone = phoneNumber.replace('@s.whatsapp.net', '');
+                console.log('🔄 Retrying with simplified phone number:', simplifiedPhone);
+                try {
+                    // Try once more with simplified format
+                    const jid = `${simplifiedPhone}@s.whatsapp.net`;
+                    await this.sock.sendMessage(jid, { text: message });
+                    console.log(`📤 WhatsApp Reply sent to ${simplifiedPhone} (retry): ${message.substring(0, 50)}...`);
+                    return true;
+                } catch (retryError) {
+                    console.error('❌ Retry failed for', simplifiedPhone, ':', retryError.message);
+                }
+            }
+            
             return false;
         }
     }
@@ -2092,7 +2453,15 @@ _Sistem Voucher WiFi_`;
                             if (recentTransactions.length > 0) {
                                 report += `📋 *TRANSAKSI TERAKHIR:*\n`;
                                 recentTransactions.forEach((tx, index) => {
-                                    const date = new Date(tx.created_at).toLocaleString('id-ID');
+                                    const date = new Date(tx.created_at).toLocaleString('id-ID', {
+                                        timeZone: 'Asia/Jakarta',
+                                        year: 'numeric',
+                                        month: '2-digit',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        second: '2-digit'
+                                    });
                                     const customer = tx.customer_phone ?
                                         `${tx.customer_name} (${tx.customer_phone})` :
                                         tx.customer_name;
@@ -2134,7 +2503,8 @@ _Sistem Voucher WiFi_`;
             qrCodeText: this.qrCodeText,
             reconnectAttempts: this.reconnectAttempts,
             isInitialized: !!this.sock,
-            hasSession: this.sessionPath && fs.existsSync(this.sessionPath)
+            hasSession: this.sessionPath && fs.existsSync(this.sessionPath),
+            sessionPath: this.sessionPath
         };
     }
 
@@ -2227,7 +2597,15 @@ _Sistem Voucher WiFi_`;
                     `🆔 Request ID: #${requestId}\n\n` +
                     `✅ Saldo sudah bertambah otomatis\n` +
                     `🚀 Siap untuk order voucher!\n\n` +
-                    `⏰ Diproses: ${new Date().toLocaleString('id-ID')}`;
+                    `⏰ Diproses: ${new Date().toLocaleString('id-ID', {
+                        timeZone: 'Asia/Jakarta',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })}`;
 
                 await this.sendReply(request.phone, agentMessage);
             }
@@ -2311,7 +2689,15 @@ _Sistem Voucher WiFi_`;
                     `• Informasi yang lebih lengkap\n` +
                     `• Metode pembayaran yang sesuai\n` +
                     `• Hubungi admin untuk klarifikasi\n\n` +
-                    `⏰ Diproses: ${new Date().toLocaleString('id-ID')}`;
+                    `⏰ Diproses: ${new Date().toLocaleString('id-ID', {
+                        timeZone: 'Asia/Jakarta',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })}`;
 
                 await this.sendReply(request.phone, agentMessage);
             }

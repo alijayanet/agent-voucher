@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembayaran Berhasil - Voucher WiFi</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .payment-container {
+            max-width: 600px;
+            width: 100%;
+            margin: 20px;
+        }
+
+        .payment-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .success-check {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        @media (max-width: 576px) {
+            .payment-card {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="payment-card text-center">
+            <div class="success-check">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Pembayaran Berhasil!</h2>
+            <p class="text-muted">Pesanan Anda sedang diproses. Voucher akan dikirim ke WhatsApp Anda.</p>
+            
+            <div class="mt-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Memproses pesanan Anda...</p>
+            </div>
+            
+            <div id="success-content" style="display: none;">
+                <h4>Voucher WiFi Anda</h4>
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <small class="text-muted">Username</small>
+                                <div class="h5 mb-0" id="voucher-username">-</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <small class="text-muted">Password</small>
+                                <div class="h5 mb-0" id="voucher-password">-</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <small class="text-muted">Durasi</small>
+                                <div class="h5 mb-0" id="voucher-duration">-</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <small class="text-muted">Tanggal Kadaluarsa</small>
+                                <div class="h5 mb-0" id="voucher-expiry">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Informasi:</strong> Voucher sudah dikirim ke nomor WhatsApp Anda. Simpan username dan password dengan aman.
+                </div>
+                
+                <button class="btn btn-primary mt-3" onclick="window.location.href='/'">
+                    <i class="fas fa-home me-2"></i>Kembali ke Beranda
+                </button>
+            </div>
+            
+            <!-- Tripay Payment Instructions -->
+            <div id="tripay-instructions" style="display: none;" class="mt-4 text-start">
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-circle me-2"></i>Informasi Pembayaran</h5>
+                    <p>Anda akan dialihkan ke halaman pembayaran Tripay. Setelah pembayaran berhasil, Anda akan secara otomatis dikembalikan ke halaman ini untuk menerima voucher Anda.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h6>Detail Pembayaran:</h6>
+                        <div class="row">
+                            <div class="col-6"><strong>ID Pesanan:</strong></div>
+                            <div class="col-6" id="tripay-order-id">-</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6"><strong>Jumlah:</strong></div>
+                            <div class="col-6" id="tripay-amount">-</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6"><strong>Metode:</strong></div>
+                            <div class="col-6" id="tripay-method">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-success" id="tripay-redirect-btn">
+                        <i class="fas fa-external-link-alt me-2"></i>Lanjutkan ke Pembayaran
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="window.location.href='/'">
+                        <i class="fas fa-times me-2"></i>Batalkan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // 🔧 UNIVERSAL API BASE - Works on any server/domain
+        function getApiBase() {
+            // Check if we're in production environment
+            if (window.location.hostname === 'agent.gantiwifi.online') {
+                // Production domain
+                return 'https://agent.gantiwifi.online/api';
+            } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname)) {
+                // Local development - always use port 3010
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                return `${protocol}//${hostname}:3010/api`;
+            } else {
+                // Other domains - assume same origin
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                const port = window.location.port;
+                if (port && port !== '80' && port !== '443') {
+                    return `${protocol}//${hostname}:${port}/api`;
+                } else {
+                    return `${protocol}//${hostname}/api`;
+                }
+            }
+        }
+        
+        const API_BASE = getApiBase();
+        console.log('🌐 Universal API_BASE:', API_BASE);
+
+        // Process payment success
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get order ID from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+            const paymentUrl = urlParams.get('payment_url');
+            
+            if (orderId && paymentUrl) {
+                // Show Tripay instructions
+                document.querySelector('.spinner-border').style.display = 'none';
+                document.querySelector('p.mt-2').style.display = 'none';
+                document.querySelector('h2').textContent = 'Pembayaran Diproses';
+                document.querySelector('p.text-muted').textContent = 'Silakan lanjutkan ke halaman pembayaran Tripay.';
+                
+                // Fill payment details
+                document.getElementById('tripay-order-id').textContent = orderId;
+                // Amount and method will be filled by the payment gateway
+                document.getElementById('tripay-amount').textContent = 'Rp -';
+                document.getElementById('tripay-method').textContent = '-';
+                
+                // Show Tripay instructions
+                document.getElementById('tripay-instructions').style.display = 'block';
+                
+                // Set redirect button
+                document.getElementById('tripay-redirect-btn').onclick = function() {
+                    window.location.href = decodeURIComponent(paymentUrl);
+                };
+            } else if (orderId) {
+                completeOrder(orderId);
+            } else {
+                // Fallback if no order ID provided
+                setTimeout(() => {
+                    document.querySelector('.spinner-border').style.display = 'none';
+                    document.querySelector('p.mt-2').textContent = 'Terjadi kesalahan. Silakan hubungi admin.';
+                }, 2000);
+            }
+        });
+
+        // Complete order
+        async function completeOrder(orderId) {
+            try {
+                // Complete the order
+                const response = await fetch(`${API_BASE}/orders/${orderId}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_reference: 'PAY' + Date.now()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Hide loading spinner
+                    document.querySelector('.spinner-border').style.display = 'none';
+                    document.querySelector('p.mt-2').style.display = 'none';
+                    
+                    // Show success content
+                    document.getElementById('success-content').style.display = 'block';
+                    
+                    // Display voucher details
+                    document.getElementById('voucher-username').textContent = result.data.voucher.username;
+                    document.getElementById('voucher-password').textContent = result.data.voucher.password;
+                    document.getElementById('voucher-duration').textContent = result.data.voucher.duration.replace('h', ' jam').replace('d', ' hari');
+                    document.getElementById('voucher-expiry').textContent = new Date(result.data.voucher.expires_at).toLocaleDateString('id-ID');
+                } else {
+                    document.querySelector('.spinner-border').style.display = 'none';
+                    document.querySelector('p.mt-2').textContent = result.message || 'Gagal memproses pesanan';
+                }
+            } catch (error) {
+                console.error('Order completion error:', error);
+                document.querySelector('.spinner-border').style.display = 'none';
+                document.querySelector('p.mt-2').textContent = 'Terjadi kesalahan saat memproses pesanan';
+            }
+        }
+    </script>
+</body>
+</html>

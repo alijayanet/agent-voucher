@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesan Voucher WiFi - Voucher WiFi Manager</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .order-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .order-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .voucher-card {
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .voucher-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .voucher-card.selected {
+            border-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .voucher-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .voucher-duration {
+            font-size: 1.1rem;
+            color: #495057;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            background: white;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #6c757d;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+
+        .step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            color: #6c757d;
+        }
+
+        .step.active .step-circle {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .step.completed .step-label {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .payment-method {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method:hover {
+            border-color: #667eea;
+        }
+
+        .payment-method.selected {
+            border-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .payment-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .success-check {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+
+        .brand-logo {
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .brand-logo:hover {
+            color: #667eea;
+        }
+
+        .brand-logo i {
+            margin-right: 10px;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .order-card {
+                padding: 20px 15px;
+                margin: 10px;
+            }
+            
+            .voucher-price {
+                font-size: 1.5rem;
+            }
+            
+            .voucher-duration {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="order-container">
+        <div class="order-card">
+            <div class="text-center mb-4">
+                <h1 class="mb-2">
+                    <a href="voucher.html" class="brand-logo">
+                        <i class="fas fa-wifi"></i>
+                        Voucher WiFi Manager
+                    </a>
+                </h1>
+                <p class="text-muted">Pilih paket voucher dan selesaikan pembayaran untuk mendapatkan akses internet</p>
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Pilih Voucher</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Data Pelanggan</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Pembayaran</div>
+                </div>
+                <div class="step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Selesai</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Pilih Voucher -->
+            <div id="step1-content">
+                <h3 class="mb-4">Pilih Paket Voucher</h3>
+                <div class="row" id="voucher-cards">
+                    <!-- Voucher cards will be loaded here -->
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Memuat paket voucher...</p>
+                    </div>
+                </div>
+                <!-- Tombol ini akan disembunyikan karena langsung pindah ke step 2 -->
+                <div class="d-flex justify-content-end mt-4" style="display: none;">
+                    <button class="btn btn-primary" id="next-to-step2" disabled onclick="showStep(2)">
+                        <i class="fas fa-arrow-right me-2"></i>Lanjut ke Data Pelanggan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Data Pelanggan -->
+            <div id="step2-content" style="display: none;">
+                <h3 class="mb-4">Data Pelanggan</h3>
+                <form id="customer-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="customer-name" class="form-label">Nama Lengkap *</label>
+                            <input type="text" class="form-control" id="customer-name" placeholder="Masukkan nama lengkap Anda" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="customer-phone" class="form-label">Nomor WhatsApp *</label>
+                            <input type="tel" class="form-control" id="customer-phone" placeholder="628xxxxxxxxxx" required>
+                            <div class="form-text">Format: 628xxxxxxxxxx</div>
+                        </div>
+                    </div>
+                </form>
+                <!-- Tombol kembali disembunyikan untuk alur yang lebih langsung -->
+                <div class="d-flex justify-content-between mt-4">
+                    <div></div> <!-- Placeholder untuk menjaga layout -->
+                    <button class="btn btn-primary" onclick="validateCustomerData()">
+                        <i class="fas fa-arrow-right me-2"></i>Lanjut ke Pembayaran
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Pembayaran -->
+            <div id="step3-content" style="display: none;">
+                <h3 class="mb-4">Metode Pembayaran</h3>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5>Detail Pesanan</h5>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <span>Paket Voucher:</span>
+                                    <strong id="payment-voucher-name">-</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Durasi:</span>
+                                    <strong id="payment-voucher-duration">-</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>Harga:</span>
+                                    <strong id="payment-voucher-price">Rp 0</strong>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <span>Total:</span>
+                                    <strong id="payment-total">Rp 0</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <h6><i class="fas fa-shield-alt me-2"></i>Keamanan Pembayaran</h6>
+                            <p class="mb-0">Pembayaran diproses melalui Tripay yang terpercaya dan aman. Data pembayaran Anda dilindungi dengan enkripsi SSL.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Pilih Metode Pembayaran</h5>
+                        <!-- QRIS Payment Methods -->
+                        <div class="payment-method" onclick="selectPaymentMethod('QRIS')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-qrcode"></i>
+                                </div>
+                                <h6>QRIS</h6>
+                                <p class="text-muted mb-0">Bayar dengan QR Code (Dana, Gopay, OVO, LinkAja, dll)</p>
+                            </div>
+                        </div>
+                        
+                        <!-- E-Wallet Specific Options -->
+                        <div class="payment-method" onclick="selectPaymentMethod('DANA')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-wallet" style="color: #00a8ff;"></i>
+                                </div>
+                                <h6>DANA</h6>
+                                <p class="text-muted mb-0">Bayar dengan aplikasi DANA</p>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-method" onclick="selectPaymentMethod('OVO')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-wallet" style="color: #ff8c00;"></i>
+                                </div>
+                                <h6>OVO</h6>
+                                <p class="text-muted mb-0">Bayar dengan aplikasi OVO</p>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-method" onclick="selectPaymentMethod('GOPAY')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-wallet" style="color: #00aa13;"></i>
+                                </div>
+                                <h6>GO-PAY</h6>
+                                <p class="text-muted mb-0">Bayar dengan aplikasi GO-PAY</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Bank Transfer Options -->
+                        <div class="payment-method" onclick="selectPaymentMethod('BNI')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-university" style="color: #0055a5;"></i>
+                                </div>
+                                <h6>Transfer BNI</h6>
+                                <p class="text-muted mb-0">Transfer ke rekening BNI</p>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-method" onclick="selectPaymentMethod('BCA')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-university" style="color: #0030a5;"></i>
+                                </div>
+                                <h6>Transfer BCA</h6>
+                                <p class="text-muted mb-0">Transfer ke rekening BCA</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Retail Options -->
+                        <div class="payment-method" onclick="selectPaymentMethod('ALFAMART')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-store" style="color: #00884a;"></i>
+                                </div>
+                                <h6>Alfamart</h6>
+                                <p class="text-muted mb-0">Bayar di gerai Alfamart</p>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-method" onclick="selectPaymentMethod('INDOMARET')">
+                            <div class="text-center">
+                                <div class="payment-icon">
+                                    <i class="fas fa-store" style="color: #e3001b;"></i>
+                                </div>
+                                <h6>Indomaret</h6>
+                                <p class="text-muted mb-0">Bayar di gerai Indomaret</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tombol kembali disembunyikan untuk alur yang lebih langsung -->
+                <div class="d-flex justify-content-between mt-4">
+                    <div></div> <!-- Placeholder untuk menjaga layout -->
+                    <button class="btn btn-primary" id="process-payment-btn" onclick="processPayment()" disabled>
+                        <i class="fas fa-credit-card me-2"></i>Proses Pembayaran
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Selesai -->
+            <div id="step4-content" style="display: none;">
+                <div class="text-center">
+                    <div class="success-check">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>Pembayaran Berhasil!</h3>
+                    <p class="text-muted">Voucher WiFi Anda telah berhasil dibuat dan dikirim ke WhatsApp</p>
+                    
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5>Detail Voucher</h5>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted">Username</small>
+                                    <div class="h5 mb-0" id="voucher-username">-</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted">Password</small>
+                                    <div class="h5 mb-0" id="voucher-password">-</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted">Durasi</small>
+                                    <div class="h5 mb-0" id="voucher-duration">-</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted">Tanggal Kadaluarsa</small>
+                                    <div class="h5 mb-0" id="voucher-expiry">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Informasi:</strong> Voucher sudah dikirim ke nomor WhatsApp Anda. Simpan username dan password dengan aman.
+                    </div>
+                    
+                    <button class="btn btn-primary mt-3" onclick="window.location.reload()">
+                        <i class="fas fa-shopping-cart me-2"></i>Pesan Voucher Lain
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Footer Links -->
+            <div class="footer-links">
+                <a href="about.html">Tentang Kami</a>
+                <a href="privacy-policy.html">Kebijakan Privasi</a>
+                <a href="terms-of-service.html">Syarat dan Ketentuan</a>
+                <br><br>
+                <small class="text-muted">© 2024 Voucher WiFi Manager. All rights reserved.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // 🔧 UNIVERSAL API BASE - Works on any server/domain
+        function getApiBase() {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            
+            // Check if we're on localhost/IP (development)
+            if (hostname === 'localhost' || hostname === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+                // Local development - always use port 3010
+                return `${protocol}//${hostname}:3010/api`;
+            } else {
+                // Production domain - check if port is in URL
+                if (port && port !== '80' && port !== '443') {
+                    // Custom port specified in URL
+                    return `${protocol}//${hostname}:${port}/api`;
+                } else {
+                    // Standard port - assume same origin
+                    return `${protocol}//${hostname}/api`;
+                }
+            }
+        }
+        
+        const API_BASE = getApiBase();
+        console.log('🌐 Universal API_BASE:', API_BASE);
+
+        // Global variables
+        let selectedVoucher = null;
+        let customerData = {};
+        let selectedPaymentMethod = null;
+        let orderData = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVoucherProfiles();
+        });
+
+        // Load voucher profiles
+        async function loadVoucherProfiles() {
+            try {
+                const response = await fetch(`${API_BASE}/profiles/public`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    renderVoucherCards(result.profiles);
+                } else {
+                    showAlert('Gagal memuat paket voucher', 'danger');
+                }
+            } catch (error) {
+                console.error('Error loading voucher profiles:', error);
+                showAlert('Terjadi kesalahan saat memuat paket voucher', 'danger');
+            }
+        }
+
+        // Render voucher cards
+        function renderVoucherCards(profiles) {
+            const container = document.getElementById('voucher-cards');
+            
+            if (!profiles || profiles.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Belum ada paket voucher yang tersedia. Silakan coba lagi nanti.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            profiles.forEach(profile => {
+                html += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card voucher-card" onclick="selectVoucher('${profile.id}', this)">
+                            <div class="card-body text-center">
+                                <div class="voucher-price">Rp ${parseInt(profile.selling_price).toLocaleString('id-ID')}</div>
+                                <div class="voucher-duration mb-3">${profile.name}</div>
+                                <div class="badge bg-primary">Aktif ${profile.duration.replace('h', ' jam').replace('d', ' hari')}</div>
+                                <div class="mt-3 text-muted small">
+                                    <i class="fas fa-wifi me-1"></i>Internet WiFi
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Select voucher
+        function selectVoucher(profileId, element) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.voucher-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Add selected class to clicked card
+            element.classList.add('selected');
+
+            // Find selected profile
+            fetch(`${API_BASE}/profiles/public`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        selectedVoucher = result.profiles.find(profile => profile.id == profileId);
+                        document.getElementById('next-to-step2').disabled = false;
+                        // Langsung pindah ke step 2
+                        showStep(2);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error finding selected voucher:', error);
+                });
+        }
+
+        // Show step
+        function showStep(stepNumber) {
+            // Hide all steps
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`step${i}-content`).style.display = 'none';
+                document.getElementById(`step${i}`).classList.remove('active', 'completed');
+            }
+
+            // Show current step
+            document.getElementById(`step${stepNumber}-content`).style.display = 'block';
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+
+            // Mark previous steps as completed
+            for (let i = 1; i < stepNumber; i++) {
+                document.getElementById(`step${i}`).classList.add('completed');
+            }
+
+            // Special handling for step 3
+            if (stepNumber === 3 && selectedVoucher) {
+                document.getElementById('payment-voucher-name').textContent = selectedVoucher.name;
+                document.getElementById('payment-voucher-duration').textContent = selectedVoucher.duration.replace('h', ' jam').replace('d', ' hari');
+                document.getElementById('payment-voucher-price').textContent = `Rp ${parseInt(selectedVoucher.selling_price).toLocaleString('id-ID')}`;
+                document.getElementById('payment-total').textContent = `Rp ${parseInt(selectedVoucher.selling_price).toLocaleString('id-ID')}`;
+            }
+        }
+
+        // Validate customer data
+        function validateCustomerData() {
+            const name = document.getElementById('customer-name').value.trim();
+            const phone = document.getElementById('customer-phone').value.trim();
+
+            if (!name || !phone) {
+                showAlert('Mohon lengkapi data pelanggan', 'warning');
+                return;
+            }
+
+            // Validate phone number format
+            if (!/^628\d{8,12}$/.test(phone)) {
+                showAlert('Format nomor WhatsApp tidak valid. Gunakan format 628xxxxxxxxxx', 'warning');
+                return;
+            }
+
+            customerData = {
+                name: name,
+                phone: phone
+            };
+
+            showStep(3);
+        }
+
+        // Select payment method
+        function selectPaymentMethod(method) {
+            // Remove selected class from all payment methods
+            document.querySelectorAll('.payment-method').forEach(methodEl => {
+                methodEl.classList.remove('selected');
+            });
+
+            // Add selected class to clicked method
+            event.currentTarget.classList.add('selected');
+            
+            selectedPaymentMethod = method;
+            document.getElementById('process-payment-btn').disabled = false;
+            
+            // Langsung proses pembayaran
+            setTimeout(() => {
+                processPayment();
+            }, 300);
+        }
+
+        // Process payment
+        async function processPayment() {
+            if (!selectedVoucher || !customerData.name || !customerData.phone || !selectedPaymentMethod) {
+                showAlert('Data pesanan tidak lengkap', 'warning');
+                return;
+            }
+
+            try {
+                showLoading(true);
+
+                const response = await fetch(`${API_BASE}/orders/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        profile_id: selectedVoucher.id,
+                        customer_name: customerData.name,
+                        customer_phone: customerData.phone,
+                        payment_method: selectedPaymentMethod
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    orderData = result.data;
+                    
+                    // Redirect to payment gateway
+                    if (result.data.payment_url) {
+                        window.location.href = result.data.payment_url;
+                    } else {
+                        // Fallback to simulation if no payment URL provided
+                        setTimeout(() => {
+                            completeOrder();
+                        }, 2000);
+                    }
+                } else {
+                    showAlert(result.message || 'Gagal membuat pesanan', 'danger');
+                }
+            } catch (error) {
+                console.error('Payment processing error:', error);
+                showAlert('Terjadi kesalahan saat memproses pembayaran', 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Complete order (called after successful payment)
+        async function completeOrder() {
+            if (!orderData) {
+                showAlert('Data pesanan tidak ditemukan', 'danger');
+                return;
+            }
+
+            try {
+                // Simulate payment success
+                const response = await fetch(`${API_BASE}/orders/${orderData.order_id}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_reference: 'PAY' + Date.now()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Display voucher details
+                    document.getElementById('voucher-username').textContent = result.data.voucher.username;
+                    document.getElementById('voucher-password').textContent = result.data.voucher.password;
+                    document.getElementById('voucher-duration').textContent = selectedVoucher.duration.replace('h', ' jam').replace('d', ' hari');
+                    document.getElementById('voucher-expiry').textContent = new Date(result.data.voucher.expires_at).toLocaleDateString('id-ID');
+                    
+                    showStep(4);
+                } else {
+                    showAlert(result.message || 'Gagal menyelesaikan pesanan', 'danger');
+                }
+            } catch (error) {
+                console.error('Order completion error:', error);
+                showAlert('Terjadi kesalahan saat menyelesaikan pesanan', 'danger');
+            }
+        }
+
+        // Show loading state
+        function showLoading(show) {
+            const processBtn = document.getElementById('process-payment-btn');
+            
+            if (show) {
+                processBtn.disabled = true;
+                processBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';
+            } else {
+                processBtn.disabled = false;
+                processBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Proses Pembayaran';
+            }
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'info') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+
+            // Create new alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            // Add to order card
+            document.querySelector('.order-card').insertBefore(alertDiv, document.querySelector('.order-card').firstChild);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

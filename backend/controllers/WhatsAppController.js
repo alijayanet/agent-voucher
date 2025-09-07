@@ -197,24 +197,69 @@ class WhatsAppController {
             // Determine session path
             const sessionPath = gateway.sessionPath || process.env.WHATSAPP_SESSION_PATH || './whatsapp-sessions';
 
-            // Disconnect first
-            try { gateway.disconnect(); } catch (e) {}
+            console.log('🔄 Starting WhatsApp session reset...');
+            console.log('📁 Session path:', sessionPath);
+
+            // Disconnect first and cleanup
+            try { 
+                gateway.disconnect(); 
+                console.log('✅ WhatsApp disconnected');
+                
+                // Wait a bit for cleanup
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            } catch (e) {
+                console.log('⚠️ Disconnect error (ignored):', e.message);
+            }
 
             // Remove session directory recursively
             if (fs.existsSync(sessionPath)) {
+                console.log('🗑️ Removing session directory:', sessionPath);
                 fs.rmSync(sessionPath, { recursive: true, force: true });
+                console.log('✅ Session directory removed');
             }
 
             // Recreate empty directory
             fs.mkdirSync(sessionPath, { recursive: true });
+            console.log('📁 Session directory recreated');
 
             // Re-initialize to trigger QR code
+            console.log('🔄 Re-initializing WhatsApp Gateway...');
             await gateway.initialize();
+            console.log('✅ WhatsApp Gateway re-initialized');
+
+            // Wait for QR code to be generated with polling
+            console.log('⏳ Waiting for QR code generation...');
+            let attempts = 0;
+            const maxAttempts = 20; // 20 seconds max wait
+            let status = gateway.getStatus();
+            
+            while (attempts < maxAttempts && !status.qrCodeDataUrl && !status.qrCodeText) {
+                console.log(`⏳ Attempt ${attempts + 1}/${maxAttempts} - Waiting for QR code...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                status = gateway.getStatus();
+                attempts++;
+            }
+
+            console.log('📊 Gateway status after reset:', {
+                isConnected: status.isConnected,
+                connectionStatus: status.connectionStatus,
+                hasQRCode: !!(status.qrCodeDataUrl || status.qrCodeText),
+                isInitialized: status.isInitialized,
+                attempts: attempts
+            });
+
+            const finalStatus = gateway.getStatus();
+            console.log('📊 Final status:', {
+                isConnected: finalStatus.isConnected,
+                connectionStatus: finalStatus.connectionStatus,
+                hasQRCode: !!(finalStatus.qrCodeDataUrl || finalStatus.qrCodeText),
+                isInitialized: finalStatus.isInitialized
+            });
 
             res.json({
                 success: true,
                 message: 'Session WhatsApp direset. QR Code baru siap untuk dipindai.',
-                status: gateway.getStatus()
+                status: finalStatus
             });
 
         } catch (error) {

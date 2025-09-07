@@ -273,6 +273,44 @@ async function migrateDatabase() {
             }
         });
         
+        // Create orders table for public voucher orders
+        db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='orders'", (err, row) => {
+            if (err) {
+                console.error('❌ Error checking orders table:', err);
+                return;
+            }
+            
+            if (!row) {
+                console.log('➕ Creating orders table...');
+                const createOrdersTable = `
+                    CREATE TABLE orders (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        order_id TEXT UNIQUE NOT NULL,
+                        profile_id INTEGER NOT NULL,
+                        customer_name TEXT NOT NULL,
+                        customer_phone TEXT NOT NULL,
+                        amount DECIMAL(10,2) NOT NULL,
+                        payment_method TEXT NOT NULL,
+                        payment_reference TEXT,
+                        status TEXT DEFAULT 'pending',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        processed_at DATETIME,
+                        FOREIGN KEY (profile_id) REFERENCES voucher_profiles (id)
+                    )
+                `;
+                
+                db.run(createOrdersTable, (err) => {
+                    if (err) {
+                        console.error('❌ Error creating orders table:', err);
+                    } else {
+                        console.log('✅ Orders table created successfully');
+                    }
+                });
+            } else {
+                console.log('✅ Orders table already exists');
+            }
+        });
+        
         console.log('✅ Database migration completed');
         
     } catch (error) {

@@ -5,11 +5,12 @@ const moment = require('moment');
 class VoucherModel {
     // Membuat voucher baru
     static async create(voucherData) {
-        const { profile, agent_price, duration, expiresAt } = voucherData;
+        const { profile, agent_price, duration, expiresAt, voucher_code_length } = voucherData;
         
-        // Generate username dan password random
-        const username = this.generateUsername();
-        const password = this.generatePassword();
+        // Generate username with specified length or default to 4 digits
+        const codeLength = voucher_code_length || 4;
+        const username = this.generateUsername(codeLength);
+        const password = username; // Same as username for Mikrotik compatibility
         
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO vouchers (username, password, profile, agent_price, duration, expires_at)
@@ -187,16 +188,20 @@ class VoucherModel {
         });
     }
 
-    // Generate username random
-    static generateUsername() {
-        const prefix = 'usr';
-        const randomString = Math.random().toString(36).substring(2, 8);
-        return prefix + randomString;
+    // Generate username random with specified length
+    static generateUsername(length = 4) {
+        // Generate a numeric code with specified length
+        const min = Math.pow(10, length - 1);
+        const max = Math.pow(10, length) - 1;
+        const code = Math.floor(min + Math.random() * (max - min + 1));
+        return code.toString();
     }
 
-    // Generate password random
+    // Generate password - same as username for Mikrotik compatibility
     static generatePassword() {
-        return Math.random().toString(36).substring(2, 10);
+        // Password should be the same as username for Mikrotik compatibility
+        // This method is kept for backward compatibility but should not be used independently
+        return ''; // Will be set to match username in the create method
     }
 
     // Validasi voucher
