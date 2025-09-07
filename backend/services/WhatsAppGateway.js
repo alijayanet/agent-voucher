@@ -1548,11 +1548,21 @@ class WhatsAppGateway {
                 
                 for (const voucher of vouchers) {
                     try {
+                        const comment = `Admin: ${phoneNumber} | ${new Date().toLocaleString('id-ID', {
+                            timeZone: 'Asia/Jakarta',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                        
                         await mikrotik.createHotspotUser(
                             voucher.username,
                             voucher.password,
                             profile.mikrotik_profile_name || profile.name || 'default',
-                            profile.duration
+                            profile.duration,
+                            comment
                         );
                         console.log(`✅ Mikrotik user created: ${voucher.username}`);
                     } catch (mikrotikError) {
@@ -1955,6 +1965,46 @@ class WhatsAppGateway {
             const vouchers = await this.createVouchers(profile, order.quantity, agent.id);
             if (!vouchers || vouchers.length === 0) {
                 return this.sendReply(agentPhone, '❌ Gagal membuat voucher. Silakan coba lagi.');
+            }
+
+            // Create users in Mikrotik
+            try {
+                const MikrotikAPI = require('../config/mikrotik');
+                const mikrotik = new MikrotikAPI();
+                
+                console.log('🔄 Connecting to Mikrotik for agent voucher creation...');
+                await mikrotik.connect();
+                
+                for (const voucher of vouchers) {
+                    try {
+                        const comment = `Agent: ${agent.full_name} (${agent.phone}) | ${new Date().toLocaleString('id-ID', {
+                            timeZone: 'Asia/Jakarta',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                        
+                        await mikrotik.createHotspotUser(
+                            voucher.username,
+                            voucher.password,
+                            profile.mikrotik_profile_name || profile.name || 'default',
+                            profile.duration,
+                            comment
+                        );
+                        console.log(`✅ Mikrotik user created: ${voucher.username}`);
+                    } catch (mikrotikError) {
+                        console.error(`❌ Error creating Mikrotik user ${voucher.username}:`, mikrotikError);
+                        // Continue with other vouchers even if one fails
+                    }
+                }
+                
+                await mikrotik.disconnect();
+                console.log('✅ Mikrotik connection closed');
+            } catch (mikrotikError) {
+                console.error('❌ Error connecting to Mikrotik:', mikrotikError);
+                // Don't fail the whole process if Mikrotik fails
             }
 
             // Create transaction record with actual cost (0 for free orders)

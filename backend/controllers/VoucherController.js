@@ -48,11 +48,21 @@ class VoucherController {
                     });
 
                     // Create user in Mikrotik with session timeout (mulai hitung saat login)
+                    const comment = `Web Admin: ${req.user?.username || 'System'} | ${new Date().toLocaleString('id-ID', {
+                        timeZone: 'Asia/Jakarta',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}`;
+                    
                     await mikrotik.createHotspotUser(
                         voucher.username,
                         voucher.password,
-                        'default', // menggunakan profile default dulu
-                        duration // session-timeout yang akan dihitung saat user login
+                        profile.mikrotik_profile_name || profile.name || 'default',
+                        duration,
+                        comment
                     );
 
                     vouchers.push(voucher);
@@ -125,11 +135,21 @@ class VoucherController {
                 });
 
                 // Create user in Mikrotik dengan session timeout
+                const comment = `Web Admin: ${req.user?.username || 'System'} | ${new Date().toLocaleString('id-ID', {
+                    timeZone: 'Asia/Jakarta',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}`;
+                
                 await mikrotik.createHotspotUser(
                     voucher.username,
                     voucher.password,
-                    profile.mikrotik_profile_name || profile.name || 'default', // menggunakan profile dari database
-                    profile.duration // session-timeout mulai hitung saat login
+                    profile.mikrotik_profile_name || profile.name || 'default',
+                    profile.duration,
+                    comment
                 );
 
                 // Create transaction
@@ -732,11 +752,21 @@ class VoucherController {
                         
                         if (voucher.is_used === false && !existsInMikrotik) {
                             // Voucher exists in DB but not in Mikrotik - create it
+                            const comment = `Sync: ${new Date().toLocaleString('id-ID', {
+                                timeZone: 'Asia/Jakarta',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`;
+                            
                             await mikrotik.createHotspotUser(
                                 voucher.username,
                                 voucher.password,
                                 'default',
-                                voucher.duration
+                                voucher.duration,
+                                comment
                             );
                             syncedCount++;
                         } else if (voucher.is_used === true && existsInMikrotik) {
@@ -816,11 +846,21 @@ class VoucherController {
                     // Check if voucher exists in Mikrotik
                     if (!mikrotikUsernames.includes(voucher.username)) {
                         // Create missing voucher in Mikrotik
+                        const comment = `Resync: ${new Date().toLocaleString('id-ID', {
+                            timeZone: 'Asia/Jakarta',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                        
                         await mikrotik.createHotspotUser(
                             voucher.username,
                             voucher.password,
                             'default',
-                            voucher.duration
+                            voucher.duration,
+                            comment
                         );
                         syncedCount++;
                     }

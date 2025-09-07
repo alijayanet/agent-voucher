@@ -165,11 +165,21 @@ class OrderController {
                 });
 
                 // Create user in Mikrotik with profile from database
+                const comment = `Public Order: ${order.customerName} (${order.customerPhone}) | ${new Date().toLocaleString('id-ID', {
+                    timeZone: 'Asia/Jakarta',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}`;
+                
                 await mikrotik.createHotspotUser(
                     voucherData.username,
                     voucherData.password,
                     profile.mikrotik_profile_name || profile.name || 'default',
-                    profile.duration
+                    profile.duration,
+                    comment
                 );
 
                 await mikrotik.disconnect();
@@ -448,11 +458,21 @@ class OrderController {
                         });
 
                         // Create user in Mikrotik with profile from database
+                        const comment = `Public Order: ${order.customerName} (${order.customerPhone}) | ${new Date().toLocaleString('id-ID', {
+                            timeZone: 'Asia/Jakarta',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}`;
+                        
                         await mikrotik.createHotspotUser(
                             voucherData.username,
                             voucherData.password,
                             profile.mikrotik_profile_name || profile.name || 'default',
-                            profile.duration
+                            profile.duration,
+                            comment
                         );
 
                         await mikrotik.disconnect();

@@ -690,11 +690,21 @@ class AgentController {
                             if (!mikrotikInstance) {
                                 await mt.connect();
                             }
+                            const comment = `Agent: ${agent.full_name} (${agent.phone}) | ${new Date().toLocaleString('id-ID', {
+                                timeZone: 'Asia/Jakarta',
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}`;
+                            
                             await mt.createHotspotUser(
                                 username,
                                 password,
                                 profile.mikrotik_profile_name || profile.name || 'default',
-                                profile.duration
+                                profile.duration,
+                                comment
                             );
                             if (!mikrotikInstance) {
                                 await mt.disconnect();

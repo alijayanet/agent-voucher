@@ -240,11 +240,21 @@ class MikrotikController {
             }
 
             const mikrotik = new MikrotikAPI();
+            const comment = `Manual: ${req.user?.username || 'System'} | ${new Date().toLocaleString('id-ID', {
+                timeZone: 'Asia/Jakarta',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}`;
+            
             await mikrotik.createHotspotUser(
                 username,
                 password,
                 profile || 'default',
-                limitUptime || '1d'
+                limitUptime || '1d',
+                comment
             );
 
             res.json({

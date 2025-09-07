@@ -78,7 +78,7 @@ class MikrotikAPI {
     }
 
     // Membuat user hotspot baru dengan session timeout yang tepat
-    async createHotspotUser(username, password, profile = 'default', limitUptime = '1d') {
+    async createHotspotUser(username, password, profile = 'default', limitUptime = '1d', comment = '') {
         try {
             if (!this.conn) {
                 await this.connect();
@@ -91,10 +91,11 @@ class MikrotikAPI {
                 `=name=${username}`,
                 `=password=${password}`,
                 `=profile=${profile}`,
-                `=limit-uptime=${sessionTimeout}` // Timer mulai saat user login
+                `=limit-uptime=${sessionTimeout}`, // Timer mulai saat user login
+                `=comment=${comment}` // Keterangan agent dan waktu
             ]);
 
-            console.log(`Hotspot user created: ${username} with session timeout: ${sessionTimeout}`);
+            console.log(`Hotspot user created: ${username} with session timeout: ${sessionTimeout}, comment: ${comment}`);
             return userdata;
         } catch (error) {
             console.error('Error creating hotspot user:', error.message);
