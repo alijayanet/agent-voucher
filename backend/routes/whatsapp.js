@@ -8,11 +8,20 @@ router.get('/status', (req, res) => {
     try {
         const wa = WhatsAppGateway.getInstance();
         const status = wa.getStatus();
+        
+        console.log('📊 WhatsApp status requested:', {
+            isConnected: status.isConnected,
+            connectionStatus: status.connectionStatus,
+            phoneNumber: status.phoneNumber,
+            hasQRCode: !!status.qrCodeDataUrl
+        });
+        
         res.json({
             success: true,
-            data: status
+            status: status // Changed from 'data' to 'status' to match frontend expectation
         });
     } catch (error) {
+        console.error('❌ Error getting WhatsApp status:', error);
         res.status(500).json({
             success: false,
             message: 'Error getting WhatsApp status',

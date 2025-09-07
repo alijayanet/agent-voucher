@@ -4204,8 +4204,12 @@ function showWhatsAppGateway() {
         console.log('🔍 WhatsApp section exists:', !!document.getElementById('whatsapp'));
         console.log('🔍 All rows in whatsapp:', document.querySelectorAll('#whatsapp .row').length);
         
-    getWhatsAppStatus();
-    loadWhatsAppOrders();
+        getWhatsAppStatus();
+        loadWhatsAppOrders();
+        
+        // Start auto-refresh for status and QR code
+        startWhatsAppStatusAutoRefresh();
+        startQRCodeAutoRefresh();
     }, 100);
 }
 
@@ -4610,6 +4614,28 @@ function startQRCodeAutoRefresh() {
             console.error('Error auto-refreshing QR code:', error);
         }
     }, 30000); // 30 seconds
+}
+
+// Auto-refresh WhatsApp status every 5 seconds
+function startWhatsAppStatusAutoRefresh() {
+    setInterval(async () => {
+        try {
+            const response = await authenticatedFetch(`${API_BASE}/whatsapp/status`);
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update status display
+                updateWhatsAppStatus(result.status);
+                
+                // Hide QR code if connected
+                if (result.status.isConnected) {
+                    hideQRCodeFromDashboard();
+                }
+            }
+        } catch (error) {
+            console.error('Error auto-refreshing WhatsApp status:', error);
+        }
+    }, 5000); // 5 seconds
 }
 
 // Start auto-refresh for QR code (called automatically)

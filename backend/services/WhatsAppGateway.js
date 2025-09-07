@@ -100,14 +100,7 @@ class WhatsAppGateway {
                 }
                 
                 // Handle other connection states
-                if (connection === 'open') {
-                    console.log('✅ WhatsApp connected successfully');
-                    this.isConnected = true;
-                    this.connectionStatus = 'connected';
-                    this.qrCode = null;
-                    this.qrCodeDataUrl = null;
-                    this.qrCodeText = null;
-                } else if (connection === 'close') {
+                if (connection === 'close') {
                     console.log('❌ WhatsApp connection closed');
                     this.isConnected = false;
                     this.connectionStatus = 'disconnected';
@@ -152,6 +145,9 @@ class WhatsAppGateway {
                     this.reconnectAttempts = 0;
                     this.qrCode = null;
                     this.qrCodeDataUrl = null;
+                    this.qrCodeText = null;
+                    console.log('📱 Phone number:', this.phoneNumber);
+                    console.log('🔄 Status updated - isConnected:', this.isConnected, 'connectionStatus:', this.connectionStatus);
                     
                     // Start listening for messages
                     this.startMessageListener();
@@ -264,6 +260,9 @@ class WhatsAppGateway {
 
             // Check if sender is a dedicated admin phone
             const dedicatedAdmin = await this.isDedicatedAdminPhone(phoneNumber);
+            
+            // Check if sender is admin phone from config.env
+            const isConfigAdmin = this.isAdminPhone(phoneNumber);
 
             // Allow registration commands even for unregistered numbers
             const lowerMessage = cleanMessage.toLowerCase();
@@ -272,6 +271,12 @@ class WhatsAppGateway {
             if (dedicatedAdmin) {
                 console.log(`👑 Dedicated admin command from ${phoneNumber} (${dedicatedAdmin.admin_name})`);
                 return await this.handleDedicatedAdminCommands(phoneNumber, dedicatedAdmin, cleanMessage);
+            }
+            
+            // Handle config admin phone commands
+            if (isConfigAdmin && !agent) {
+                console.log(`👑 Config admin command from ${phoneNumber}`);
+                return await this.handleConfigAdminCommands(phoneNumber, cleanMessage);
             }
 
             if (!agent) {
@@ -515,6 +520,17 @@ class WhatsAppGateway {
         return agent && agent.role === 'admin';
     }
 
+    // Check if phone number is admin phone from config.env
+    isAdminPhone(phoneNumber) {
+        try {
+            const adminPhones = process.env.ADMIN_PHONES ? process.env.ADMIN_PHONES.split(',') : [];
+            return adminPhones.includes(phoneNumber);
+        } catch (error) {
+            console.error('❌ Error checking admin phone:', error);
+            return false;
+        }
+    }
+
     // Check if phone number is a dedicated admin phone
     async isDedicatedAdminPhone(phoneNumber) {
         try {
@@ -537,6 +553,68 @@ class WhatsAppGateway {
             console.error('❌ Error checking dedicated admin phone:', error);
             return null;
         }
+    }
+
+    // Handle config admin phone commands (from ADMIN_PHONES in config.env)
+    async handleConfigAdminCommands(phoneNumber, message) {
+        try {
+            console.log(`👑 Config admin command from ${phoneNumber}: ${message}`);
+            
+            const cleanMessage = message.trim();
+            const lowerMessage = cleanMessage.toLowerCase();
+            
+            if (lowerMessage === 'help' || lowerMessage === 'bantuan') {
+                return this.sendReply(phoneNumber, this.getConfigAdminHelp());
+                
+            } else if (lowerMessage.startsWith('voucher') || lowerMessage.startsWith('beli')) {
+                const parts = cleanMessage.split(/\s+/);
+                if (parts.length < 3) {
+                    return this.sendReply(phoneNumber, 
+                        `❌ Format: voucher [profile] [jumlah] [customer] [phone]\n` +
+                        `💡 Contoh: voucher 5k 2 Customer 081234567890`);
+                }
+                
+                const profile = parts[1];
+                const quantity = parseInt(parts[2]);
+                const customerName = parts[3] || 'Admin Customer';
+                const customerPhone = parts[4] || '';
+                
+                return await this.adminCreateVoucher(phoneNumber, profile, quantity, customerName, customerPhone);
+                
+            } else {
+                // Check if this might be an auto-response or non-command message
+                const isAutoResponse = this.isAutoResponseMessage(cleanMessage);
+                
+                if (isAutoResponse) {
+                    console.log(`🚫 Ignoring auto-response message from config admin ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
+                    return; // Don't send any reply for auto-responses
+                }
+                
+                // For any other unrecognized admin commands, ignore silently
+                console.log(`🚫 Ignoring unrecognized config admin command from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
+                return; // Don't send any reply for unrecognized admin commands
+            }
+            
+        } catch (error) {
+            console.error('❌ Error handling config admin command:', error);
+            return this.sendReply(phoneNumber, '❌ Terjadi kesalahan saat memproses perintah admin.');
+        }
+    }
+
+    // Get help message for config admin
+    getConfigAdminHelp() {
+        return `👑 *ADMIN COMMANDS (Config Admin)*\n\n` +
+               `🎫 *Perintah Voucher:*\n` +
+               `• voucher [profile] [jumlah] [customer] [phone] - Buat voucher\n` +
+               `• beli [profile] [jumlah] [customer] [phone] - Buat voucher\n\n` +
+               `💡 Contoh:\n` +
+               `• voucher 5k 2 Customer 081234567890\n` +
+               `• beli 3k 1 Ahmad 081234567890\n\n` +
+               `📋 *Catatan:*\n` +
+               `• Voucher dibuat GRATIS (tanpa potong saldo)\n` +
+               `• Langsung aktif di Mikrotik\n` +
+               `• Dikirim ke customer jika ada nomor\n\n` +
+               `📱 Kirim "help" untuk menu ini`;
     }
 
     // Handle dedicated admin phone commands (simple commands)
@@ -1548,7 +1626,11 @@ class WhatsAppGateway {
                 
                 for (const voucher of vouchers) {
                     try {
-                        const comment = `Admin: ${phoneNumber} | ${new Date().toLocaleString('id-ID', {
+                        // Check if this is config admin or dedicated admin
+                        const isConfigAdmin = this.isAdminPhone(phoneNumber);
+                        const commentPrefix = isConfigAdmin ? 'Config Admin' : 'Admin';
+                        
+                        const comment = `${commentPrefix}: ${phoneNumber} | ${new Date().toLocaleString('id-ID', {
                             timeZone: 'Asia/Jakarta',
                             year: 'numeric',
                             month: '2-digit',
