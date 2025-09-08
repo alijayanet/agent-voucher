@@ -326,29 +326,30 @@ class Database {
     createDefaultUsers() {
         const bcrypt = require('bcryptjs');
         
+        // DISABLED: Admin default dari DB dinonaktifkan, admin diambil dari ENV
         // Check if admin already exists
-        this.db.get('SELECT * FROM users WHERE username = ?', ['admin'], (err, row) => {
-            if (err) {
-                console.error('Error checking admin user:', err);
-                return;
-            }
-            
-            if (!row) {
-                // Create default admin user
-                const adminPassword = bcrypt.hashSync('admin123', 10);
-                this.db.run(
-                    'INSERT INTO users (username, password, full_name, role, email, phone, address) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    ['admin', adminPassword, 'Administrator', 'admin', 'admin@voucherwifi.com', null, null],
-                    function(err) {
-                        if (err) {
-                            console.error('Error creating admin user:', err);
-                        } else {
-                            console.log('Default admin user created (username: admin, password: admin123)');
-                        }
-                    }
-                );
-            }
-        });
+        // this.db.get('SELECT * FROM users WHERE username = ?', ['admin'], (err, row) => {
+        //     if (err) {
+        //         console.error('Error checking admin user:', err);
+        //         return;
+        //     }
+        //     
+        //     if (!row) {
+        //         // Create default admin user
+        //         const adminPassword = bcrypt.hashSync('admin123', 10);
+        //         this.db.run(
+        //             'INSERT INTO users (username, password, full_name, role, email, phone, address) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        //             ['admin', adminPassword, 'Administrator', 'admin', 'admin@voucherwifi.com', null, null],
+        //             function(err) {
+        //                 if (err) {
+        //                     console.error('Error creating admin user:', err);
+        //                 } else {
+        //                     console.log('Default admin user created (username: admin, password: admin123)');
+        //                 }
+        //             }
+        //         );
+        //     }
+        // });
 
         // Check if agent already exists
         this.db.get('SELECT * FROM users WHERE username = ?', ['agent'], (err, row) => {

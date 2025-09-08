@@ -15,6 +15,39 @@ class AuthController {
                 });
             }
 
+            // Bypass: admin login via ENV tanpa DB
+            const adminUsername = process.env.ADMIN_USERNAME;
+            const adminPassword = process.env.ADMIN_PASSWORD;
+            const adminEmail = process.env.ADMIN_EMAIL || 'admin@voucherwifi.com';
+            const adminFullName = process.env.ADMIN_FULL_NAME || 'Administrator';
+            if (adminUsername && adminPassword && username === adminUsername && password === adminPassword) {
+                const jwt = require('jsonwebtoken');
+                const token = jwt.sign(
+                    {
+                        username: adminUsername,
+                        role: 'admin',
+                        source: 'env-admin'
+                    },
+                    process.env.JWT_SECRET || 'voucher_wifi_secret_key',
+                    { expiresIn: '24h' }
+                );
+
+                return res.json({
+                    success: true,
+                    message: 'Login berhasil',
+                    token: token,
+                    user: {
+                        id: null,
+                        username: adminUsername,
+                        full_name: adminFullName,
+                        email: adminEmail,
+                        role: 'admin',
+                        phone: null,
+                        balance: 0
+                    }
+                });
+            }
+
             // Get user by username
             const user = await UserModel.findByUsername(username);
             
@@ -97,7 +130,21 @@ class AuthController {
                 });
             }
 
-            // Invalidate session
+            // Jika token adalah admin ENV, tidak perlu hapus sesi DB
+            const jwt = require('jsonwebtoken');
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'voucher_wifi_secret_key');
+                if (decoded && decoded.role === 'admin' && decoded.username === (process.env.ADMIN_USERNAME || 'admin')) {
+                    return res.json({
+                        success: true,
+                        message: 'Logout berhasil'
+                    });
+                }
+            } catch (e) {
+                // lanjut ke penghapusan sesi DB untuk token non-admin/env
+            }
+
+            // Invalidate session (non-admin)
             const sql = `DELETE FROM user_sessions WHERE token = ?`;
             
             await new Promise((resolve, reject) => {
@@ -133,6 +180,25 @@ class AuthController {
             const user = req.user;
             
             console.log('🔍 me() - req.user:', user);
+
+            // Admin ENV: kembalikan dari ENV tanpa query DB
+            if (user && user.role === 'admin' && user.username === (process.env.ADMIN_USERNAME || 'admin')) {
+                return res.json({
+                    success: true,
+                    user: {
+                        id: null,
+                        username: process.env.ADMIN_USERNAME || 'admin',
+                        email: process.env.ADMIN_EMAIL || 'admin@voucherwifi.com',
+                        full_name: process.env.ADMIN_FULL_NAME || 'Administrator',
+                        phone: null,
+                        role: 'admin',
+                        balance: 0,
+                        is_active: 1,
+                        created_at: null,
+                        last_login: null
+                    }
+                });
+            }
 
             if (!user || !user.id) {
                 console.log('❌ me() - No user or user.id in request');

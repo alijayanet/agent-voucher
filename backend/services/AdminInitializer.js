@@ -7,42 +7,19 @@ class AdminInitializer {
      */
     static async initializeAdminUser() {
         try {
-            console.log('👑 Initializing admin user from .env...');
+            console.log('👑 Admin from .env enabled; skip creating admin in DB');
 
-            // Get admin configuration from environment
+            // Get admin configuration from environment (no DB write)
             const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-            const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
             const adminEmail = process.env.ADMIN_EMAIL || 'admin@voucherwifi.com';
             const adminFullName = process.env.ADMIN_FULL_NAME || 'Administrator';
 
-            console.log('✅ Admin configuration loaded from .env');
-            console.log(`   Username: ${adminUsername}`);
-            console.log(`   Email: ${adminEmail}`);
-            console.log(`   Full Name: ${adminFullName}`);
-
-            // Simple approach: Always try to create, ignore if exists
-            try {
-                const adminUser = await UserModel.create({
-                    username: adminUsername,
-                    password: adminPassword,
-                    email: adminEmail,
-                    full_name: adminFullName,
-                    role: 'admin'
-                });
-
-                console.log('✅ Admin user created successfully');
-                return adminUser;
-
-            } catch (createError) {
-                // If creation fails (probably because user exists), just return success
-                console.log('ℹ️ Admin user already exists or creation skipped');
-                return {
-                    username: adminUsername,
-                    email: adminEmail,
-                    full_name: adminFullName,
-                    role: 'admin'
-                };
-            }
+            return {
+                username: adminUsername,
+                email: adminEmail,
+                full_name: adminFullName,
+                role: 'admin'
+            };
 
         } catch (error) {
             console.error('❌ Error initializing admin user:', error.message);
@@ -74,61 +51,9 @@ class AdminInitializer {
      */
     static async updateAdminIfNeeded(existingAdmin, newDetails) {
         try {
-            const bcrypt = require('bcryptjs');
-            let needsUpdate = false;
-            const updateData = {};
-
-            // Check if password needs update
-            if (newDetails.password) {
-                const isSamePassword = await bcrypt.compare(newDetails.password, existingAdmin.password);
-                if (!isSamePassword) {
-                    console.log('🔄 Admin password changed, updating...');
-                    updateData.password = bcrypt.hashSync(newDetails.password, 10);
-                    needsUpdate = true;
-                }
-            }
-
-            // Check if other details need update
-            if (newDetails.email && newDetails.email !== existingAdmin.email) {
-                updateData.email = newDetails.email;
-                needsUpdate = true;
-            }
-
-            if (newDetails.full_name && newDetails.full_name !== existingAdmin.full_name) {
-                updateData.full_name = newDetails.full_name;
-                needsUpdate = true;
-            }
-
-            if (needsUpdate) {
-                console.log('🔄 Updating admin user details...');
-
-                const sql = `UPDATE users SET
-                    ${updateData.password ? 'password = ?, ' : ''}
-                    ${updateData.email ? 'email = ?, ' : ''}
-                    ${updateData.full_name ? 'full_name = ?, ' : ''}
-                    updated_at = CURRENT_TIMESTAMP
-                    WHERE id = ?`;
-
-                const params = [];
-                if (updateData.password) params.push(updateData.password);
-                if (updateData.email) params.push(updateData.email);
-                if (updateData.full_name) params.push(updateData.full_name);
-                params.push(existingAdmin.id);
-
-                return new Promise((resolve, reject) => {
-                    database.getDb().run(sql.replace(/, updated_at/g, 'updated_at'), params, function(err) {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            console.log('✅ Admin user updated successfully');
-                            resolve(this.changes > 0);
-                        }
-                    });
-                });
-            } else {
-                console.log('✅ Admin user is up to date');
-            }
-
+            // With ENV-based admin, we skip updating DB admin
+            console.log('ℹ️ Skipping admin DB update; admin is managed via .env');
+            return false;
         } catch (error) {
             console.error('❌ Error updating admin user:', error);
             throw error;
@@ -142,21 +67,16 @@ class AdminInitializer {
         try {
             const adminUsername = process.env.ADMIN_USERNAME || 'admin';
 
-            const adminUser = await this.checkExistingAdmin(adminUsername);
-
-            if (adminUser) {
-                return {
-                    id: adminUser.id,
-                    username: adminUser.username,
-                    email: adminUser.email,
-                    full_name: adminUser.full_name,
-                    role: adminUser.role,
-                    created_at: adminUser.created_at,
-                    last_login: adminUser.last_login
-                };
-            }
-
-            return null;
+            // Prefer .env values directly
+            return {
+                id: null,
+                username: adminUsername,
+                email: process.env.ADMIN_EMAIL || 'admin@voucherwifi.com',
+                full_name: process.env.ADMIN_FULL_NAME || 'Administrator',
+                role: 'admin',
+                created_at: null,
+                last_login: null
+            };
 
         } catch (error) {
             console.error('❌ Error getting admin info:', error);

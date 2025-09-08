@@ -135,6 +135,26 @@ class UserModel {
                 
                 const decoded = jwt.verify(token, process.env.JWT_SECRET || 'voucher_wifi_secret_key');
                 console.log('✅ JWT decoded successfully:', { id: decoded.id, username: decoded.username, role: decoded.role });
+
+                // Bypass DB session untuk admin ENV
+                if (
+                    decoded &&
+                    decoded.role === 'admin' &&
+                    decoded.username === (process.env.ADMIN_USERNAME || 'admin')
+                ) {
+                    return resolve({
+                        valid: true,
+                        user: {
+                            id: null,
+                            username: decoded.username,
+                            full_name: process.env.ADMIN_FULL_NAME || 'Administrator',
+                            email: process.env.ADMIN_EMAIL || 'admin@voucherwifi.com',
+                            phone: null,
+                            role: 'admin',
+                            balance: 0
+                        }
+                    });
+                }
                 
                 // Check if session exists and not expired
                 const sql = `SELECT s.*, u.username, u.full_name, u.role, u.is_active, u.email, u.phone, u.balance
