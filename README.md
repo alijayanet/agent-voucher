@@ -699,7 +699,7 @@ Proyek ini dilisensikan di bawah **Lisensi MIT** - lihat file [LICENSE](LICENSE)
 
 **Ali Jaya**
 - GitHub: [@alijayanet](https://github.com/alijayanet)
-- Website: [alijayanet.com](https://alijayanet.com)
+- Website: [alijayanet.com](https://alijaya.net)
 
 ---
 
@@ -732,5 +732,6 @@ Proyek ini dilisensikan di bawah **Lisensi MIT** - lihat file [LICENSE](LICENSE)
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=alijayanet.agent-voucher)
 [![GitHub stars](https://img.shields.io/github/stars/alijayanet/agent-voucher?style=social)](https://github.com/alijayanet/agent-voucher/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/alijayanet/agent-voucher?style=social)](https://github.com/alijayanet/agent-voucher/network/members)
+
 
 </div>
