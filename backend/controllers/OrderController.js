@@ -272,7 +272,15 @@ class OrderController {
                         `1. Buka browser\n` +
                         `2. Masukkan kode voucher sebagai username dan password\n` +
                         `3. Klik login\n\n` +
-                        `⏰ Berlaku sampai: ${new Date(voucherData.expires_at).toLocaleString('id-ID')}\n\n` +
+                        `⏰ Berlaku sampai: ${new Date(voucherData.expires_at).toLocaleString('id-ID', {
+                            timeZone: 'Asia/Jakarta',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        })}\n\n` +
                         `Terima kasih telah menggunakan layanan kami!`;
 
                     const sendResult = await wa.sendReply(formattedPhone, customerMessage);
@@ -518,7 +526,15 @@ class OrderController {
                                 `1. Buka browser\n` +
                                 `2. Masukkan kode voucher sebagai username dan password\n` +
                                 `3. Klik login\n\n` +
-                                `⏰ Berlaku sampai: ${new Date(voucherData.expires_at).toLocaleString('id-ID')}\n\n` +
+                                `⏰ Berlaku sampai: ${new Date(voucherData.expires_at).toLocaleString('id-ID', {
+                                    timeZone: 'Asia/Jakarta',
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                })}\n\n` +
                                 `Terima kasih telah menggunakan layanan kami!`;
 
                             // Validate and format phone number with better error handling
@@ -661,9 +677,25 @@ class OrderController {
                 `💳 Payment: ${order.payment_method.toUpperCase()}\n\n` +
                 `🔐 *Detail Voucher:*\n` +
                 `🔑 Kode: ${voucherData.username}\n` +
-                `⏰ Expires: ${new Date(voucherData.expires_at).toLocaleString('id-ID')}\n\n` +
+                `⏰ Expires: ${new Date(voucherData.expires_at).toLocaleString('id-ID', {
+                    timeZone: 'Asia/Jakarta',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                })}\n\n` +
                 `🆔 Order ID: #${order.id}\n` +
-                `⏰ Waktu: ${new Date().toLocaleString('id-ID')}\n\n` +
+                `⏰ Waktu: ${new Date().toLocaleString('id-ID', {
+                    timeZone: 'Asia/Jakarta',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                })}\n\n` +
                 `📊 Dashboard: ${process.env.DASHBOARD_URL || 'http://localhost:3010'}`;
 
             // Send to all admin phones

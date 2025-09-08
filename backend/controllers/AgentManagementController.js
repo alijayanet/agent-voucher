@@ -351,7 +351,15 @@ class AgentManagementController {
                         `💵 Jumlah Deposit: Rp ${amount.toLocaleString('id-ID')}\n` +
                         `💰 Saldo Lama: Rp ${currentBalance.toLocaleString('id-ID')}\n` +
                         `💰 Saldo Baru: Rp ${newBalance.toLocaleString('id-ID')}\n\n` +
-                        `⏰ Waktu: ${new Date().toLocaleString('id-ID')}\n\n` +
+                        `⏰ Waktu: ${new Date().toLocaleString('id-ID', {
+                            timeZone: 'Asia/Jakarta',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        })}\n\n` +
                         `💡 Gunakan saldo ini untuk order voucher.\n` +
                         `📱 Ketik "help" untuk melihat cara order.`;
 
