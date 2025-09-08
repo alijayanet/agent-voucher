@@ -36,7 +36,7 @@ class VoucherController {
                 for (let i = 0; i < quantity; i++) {
                     // Calculate expiry date
                     const duration = custom_duration || profile.duration;
-                    const expiresAt = this.calculateExpiryDate(duration);
+                    const expiresAt = VoucherController.calculateExpiryDate(duration);
 
                     // Create voucher in database
                     const voucher = await VoucherModel.create({
@@ -123,7 +123,7 @@ class VoucherController {
                 await mikrotik.connect();
 
                 // Calculate expiry date
-                const expiresAt = this.calculateExpiryDate(profile.duration);
+                const expiresAt = VoucherController.calculateExpiryDate(profile.duration);
 
                 // Create voucher in database
                 const voucher = await VoucherModel.create({
@@ -466,7 +466,7 @@ class VoucherController {
                         }
 
                         // Calculate expiry date based on creation time or current time
-                        const expiresAt = this.calculateExpiryDate(duration);
+                        const expiresAt = VoucherController.calculateExpiryDate(duration);
 
                         // Get profile name (use profile or default)
                         const profileName = user.profile || 'default';
@@ -573,7 +573,7 @@ class VoucherController {
                                 duration = this.convertMikrotikUptimeToHours(user['limit-uptime']);
                             }
 
-                            const expiresAt = this.calculateExpiryDate(duration);
+                            const expiresAt = VoucherController.calculateExpiryDate(duration);
                             const profileName = user.profile || 'default';
                             
                             let agent_price = 5000;

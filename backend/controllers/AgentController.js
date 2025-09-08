@@ -424,6 +424,8 @@ class AgentController {
             console.log('👤 Agent ID:', req.user?.id);
             console.log('📋 Request body:', req.body);
 
+            const isAdminEnv = req.user && req.user.role === 'admin' && (req.user.id === null || typeof req.user.id === 'undefined');
+
             const agentId = req.user.id;
             const { profileId, quantity, customerName, customerPhone } = req.body;
 
@@ -442,66 +444,47 @@ class AgentController {
                 });
             }
 
-            // Get agent info
-            console.log('👤 Getting agent info for ID:', agentId);
-            const agent = await UserModel.findById(agentId);
-            console.log('👤 Agent found:', agent ? 'YES' : 'NO');
-
-            if (!agent) {
-                console.log('❌ Agent not found');
-                return res.status(404).json({
-                    success: false,
-                    message: 'Agent tidak ditemukan'
-                });
-            }
-
-            console.log('💰 Agent balance:', agent.balance);
-
-            // Get voucher profile using WhatsApp approach for consistency
-            console.log('📦 Getting voucher profile for ID:', profileId);
+            // Get voucher profile
             const VoucherProfileModel = require('../models/VoucherProfile');
             const profile = await VoucherProfileModel.getById(profileId);
-            console.log('📦 Profile found:', profile ? 'YES' : 'NO');
-            console.log('📦 Profile active:', profile?.is_active);
-
             if (!profile || !profile.is_active) {
-                console.log('❌ Profile not found or not active');
                 return res.status(404).json({
                     success: false,
                     message: 'Profil voucher tidak ditemukan atau tidak aktif'
                 });
             }
 
-            console.log('💰 Profile price:', profile.agent_price);
+            // If ADMIN ENV, skip agent lookup and balance checks
+            let agent = null;
+            if (!isAdminEnv) {
+                // Get agent info
+                const UserModel = require('../models/User');
+                agent = await UserModel.findById(agentId);
+                if (!agent) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Agent tidak ditemukan'
+                    });
+                }
 
-            // Check agent balance
-            const totalCost = profile.agent_price * quantity;
-            console.log('💰 Total cost:', totalCost, '(price:', profile.agent_price, 'x quantity:', quantity, ')');
-            console.log('💰 Agent balance:', agent.balance);
-
-            if (agent.balance < totalCost) {
-                console.log('❌ Insufficient balance');
-                return res.status(400).json({
-                success: false,
-                    message: `Saldo tidak cukup. Diperlukan: Rp ${totalCost.toLocaleString('id-ID')}, Saldo: Rp ${agent.balance.toLocaleString('id-ID')}`
-                });
+                // Check agent balance
+                const totalCost = profile.agent_price * quantity;
+                if (agent.balance < totalCost) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Saldo tidak cukup. Diperlukan: Rp ${totalCost.toLocaleString('id-ID')}, Saldo: Rp ${agent.balance.toLocaleString('id-ID')}`
+                    });
+                }
             }
 
-            console.log('✅ Balance sufficient, proceeding with voucher generation');
-
             // Generate vouchers & create Mikrotik users
-            console.log('🎫 Starting voucher generation for', quantity, 'vouchers');
             const vouchers = [];
-            const mikrotik = new MikrotikAPI();
+            const mikrotik = new (require('../config/mikrotik'))();
             try {
                 await mikrotik.connect();
                 for (let i = 0; i < quantity; i++) {
-                    console.log('🎫 Generating voucher', (i + 1), 'of', quantity);
-                    const voucher = await AgentController.createSingleVoucher(profile, agentId, customerName, mikrotik);
-                    console.log('🎫 Voucher', (i + 1), 'result:', voucher ? 'SUCCESS' : 'FAILED');
-                    if (voucher) {
-                        vouchers.push(voucher);
-                    }
+                    const voucher = await AgentController.createSingleVoucher(profile, isAdminEnv ? null : agentId, customerName, mikrotik);
+                    if (voucher) vouchers.push(voucher);
                 }
             } catch (mtErr) {
                 console.error('💥 Mikrotik connection/create error:', mtErr.message);
@@ -513,8 +496,6 @@ class AgentController {
                 try { await mikrotik.disconnect(); } catch (e) {}
             }
 
-            console.log('✅ Generated', vouchers.length, 'vouchers successfully');
-
             if (vouchers.length === 0) {
                 return res.status(500).json({
                     success: false,
@@ -522,78 +503,45 @@ class AgentController {
                 });
             }
 
-            // Deduct agent balance
-            console.log('💸 Deducting balance from agent:', totalCost);
-            await UserModel.deductBalance(agentId, totalCost);
-            console.log('✅ Balance deducted successfully');
+            // For agent (non-admin), deduct balance and create transaction
+            if (!isAdminEnv) {
+                const UserModel = require('../models/User');
+                const totalCost = profile.agent_price * quantity;
+                await UserModel.deductBalance(agentId, totalCost);
+                const transactionId = await AgentController.createVoucherTransaction(agentId, vouchers, profile, totalCost, customerName);
+                await AgentController.linkVouchersToTransaction(vouchers.map(v => v.id), transactionId);
+            }
 
-            // Create transaction record
-            console.log('📝 Creating transaction record');
-            const transactionId = await AgentController.createVoucherTransaction(agentId, vouchers, profile, totalCost, customerName);
-            console.log('✅ Transaction ID:', transactionId);
-
-            // Link vouchers to transaction
-            console.log('🔗 Linking vouchers to transaction');
-            await AgentController.linkVouchersToTransaction(vouchers.map(v => v.id), transactionId);
-            console.log('✅ Vouchers linked');
-            console.log('✅ Transaction record created successfully');
-
-            // Send voucher to customer via WhatsApp if phone provided
+            // Optionally send voucher to customer via WhatsApp if provided
             let whatsappStatus = null;
             if (customerPhone && customerPhone.trim()) {
-                console.log('📱 Sending voucher to customer via WhatsApp:', customerPhone);
                 try {
                     const WhatsAppGateway = require('../services/WhatsAppGateway');
                     const whatsapp = WhatsAppGateway.getInstance();
-                    
-                    // Format voucher message
-                    const voucherMessage = AgentController.formatVoucherMessage(vouchers, profile, customerName || 'Customer', agent.full_name);
-                    
+                    const voucherMessage = AgentController.formatVoucherMessage(
+                        vouchers,
+                        profile,
+                        customerName || 'Customer',
+                        isAdminEnv ? (process.env.ADMIN_FULL_NAME || 'Administrator') : (agent?.full_name || 'Agent')
+                    );
                     await whatsapp.sendReply(customerPhone, voucherMessage);
-                    whatsappStatus = {
-                        sent: true,
-                        phone: customerPhone,
-                        message: 'Voucher berhasil dikirim ke customer'
-                    };
-                    console.log('✅ Voucher sent to customer via WhatsApp');
+                    whatsappStatus = { sent: true, phone: customerPhone, message: 'Voucher berhasil dikirim ke customer' };
                 } catch (whatsappError) {
-                    console.error('❌ Error sending voucher to customer:', whatsappError);
-                    whatsappStatus = {
-                        sent: false,
-                        phone: customerPhone,
-                        error: whatsappError.message || 'Gagal mengirim voucher'
-                    };
+                    whatsappStatus = { sent: false, phone: customerPhone, error: whatsappError.message || 'Gagal mengirim voucher' };
                 }
             }
 
-            res.json({
+            return res.json({
                 success: true,
                 message: `${vouchers.length} voucher berhasil dibuat`,
-                vouchers: vouchers.map(v => ({
-                    id: v.id,
-                    username: v.username,
-                    password: v.password,
-                    profile: profile.name,
-                    duration: profile.duration,
-                    agent_price: profile.agent_price
-                })),
-                profile: {
-                    id: profile.id,
-                    name: profile.name,
-                    duration: profile.duration,
-                    agent_price: profile.agent_price
-                },
+                vouchers: vouchers.map(v => ({ id: v.id, username: v.username, password: v.password, profile: profile.name, duration: profile.duration, agent_price: profile.agent_price })),
+                profile: { id: profile.id, name: profile.name, duration: profile.duration, agent_price: profile.agent_price },
                 whatsapp: whatsappStatus
             });
 
         } catch (error) {
-            console.error('💥 CRITICAL ERROR in generateVoucher:');
-            console.error('📊 Error message:', error.message);
-            console.error('📊 Error stack:', error.stack);
-            console.error('📊 Error code:', error.code);
-            console.error('📊 Error details:', error);
-
-            res.status(500).json({
+            console.error('💥 CRITICAL ERROR in generateVoucher:', error);
+            return res.status(500).json({
                 success: false,
                 message: 'Gagal membuat voucher. Silakan coba lagi.',
                 error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
