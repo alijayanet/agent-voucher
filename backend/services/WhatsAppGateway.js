@@ -523,10 +523,27 @@ class WhatsAppGateway {
     // Check if phone number is admin phone from config.env
     isAdminPhone(phoneNumber) {
         try {
-            const adminPhones = process.env.ADMIN_PHONES ? process.env.ADMIN_PHONES.split(',') : [];
-            return adminPhones.includes(phoneNumber);
+            // Normalisasi input: buang '+', trim, konversi awalan '0' ke '62'
+            const normalize = (num) => {
+                if (!num) return '';
+                let n = String(num).trim().replace(/\s+/g, '').replace(/^\+/, '');
+                if (n.startsWith('0')) {
+                    n = '62' + n.slice(1);
+                }
+                return n;
+            };
+
+            const normalizedSender = normalize(phoneNumber);
+
+            // Ambil dan normalisasi daftar admin dari ENV
+            const adminPhonesRaw = process.env.ADMIN_PHONES ? process.env.ADMIN_PHONES.split(',') : [];
+            const adminPhones = adminPhonesRaw
+                .map(p => normalize(p))
+                .filter(p => p.length > 0);
+
+            return adminPhones.includes(normalizedSender);
         } catch (error) {
-            console.error('❌ Error checking admin phone:', error);
+            console.error('Error checking admin phone:', error);
             return false;
         }
     }
@@ -1754,9 +1771,11 @@ class WhatsAppGateway {
     // Find agent by phone number
     async findAgentByPhone(phoneNumber) {
         try {
-            // Remove +62 prefix if present and add 62 if not
-            let normalizedPhone = phoneNumber.replace(/^\+/, '');
-            if (!normalizedPhone.startsWith('62')) {
+            // Remove plus and normalize to 62 format
+            let normalizedPhone = String(phoneNumber || '').trim().replace(/^\+/, '').replace(/\s+/g, '');
+            if (normalizedPhone.startsWith('0')) {
+                normalizedPhone = '62' + normalizedPhone.slice(1);
+            } else if (!normalizedPhone.startsWith('62')) {
                 normalizedPhone = '62' + normalizedPhone;
             }
 

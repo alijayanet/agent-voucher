@@ -10,11 +10,25 @@ class UserModel {
         // Hash password
         const hashedPassword = bcrypt.hashSync(password, 10);
         
+        // Normalisasi nomor telepon bila ada
+        const normalizePhone = (num) => {
+            if (!num) return null;
+            let n = String(num).trim().replace(/\s+/g, '').replace(/^\+/, '');
+            if (n.startsWith('0')) {
+                n = '62' + n.slice(1);
+            } else if (!n.startsWith('62')) {
+                n = '62' + n;
+            }
+            return n;
+        };
+        const phone = normalizePhone(userData.phone);
+        const address = userData.address || null;
+        
         return new Promise((resolve, reject) => {
-            const sql = `INSERT INTO users (username, password, email, full_name, role)
-                        VALUES (?, ?, ?, ?, ?)`;
+            const sql = `INSERT INTO users (username, password, email, full_name, role, phone, address)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)`;
             
-            database.getDb().run(sql, [username, hashedPassword, email, full_name, role], 
+            database.getDb().run(sql, [username, hashedPassword, email, full_name, role, phone, address], 
                 function(err) {
                     if (err) {
                         reject(err);
@@ -24,7 +38,9 @@ class UserModel {
                             username,
                             email,
                             full_name,
-                            role
+                            role,
+                            phone,
+                            address
                         });
                     }
                 });
