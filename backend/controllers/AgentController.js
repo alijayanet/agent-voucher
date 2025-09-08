@@ -638,7 +638,8 @@ class AgentController {
                             if (!mikrotikInstance) {
                                 await mt.connect();
                             }
-                            const comment = `Agent: ${agent.full_name} (${agent.phone}) | ${new Date().toLocaleString('id-ID', {
+                            const actorLabel = agentId ? `Agent ID: ${agentId}` : `Admin: ${process.env.ADMIN_FULL_NAME || 'Administrator'}`;
+                            const comment = `${actorLabel} | ${new Date().toLocaleString('id-ID', {
                                 timeZone: 'Asia/Jakarta',
                                 year: 'numeric',
                                 month: '2-digit',
