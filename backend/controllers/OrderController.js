@@ -6,7 +6,7 @@ const database = require('../config/database');
 const PaymentGateway = require('../services/PaymentGateway');
 
 class OrderController {
-    // Create new order
+    // Create new order (NO VOUCHER CREATION - voucher hanya dibuat setelah pembayaran berhasil)
     static async createOrder(req, res) {
         try {
             const { profile_id, customer_name, customer_phone, payment_method } = req.body;
@@ -36,7 +36,7 @@ class OrderController {
                 });
             }
 
-            // Create order record
+            // Create order record ONLY (NO VOUCHER CREATION YET)
             const orderId = 'ORD' + Date.now() + Math.random().toString(36).substr(2, 5).toUpperCase();
             
             const sql = `INSERT INTO orders (order_id, profile_id, customer_name, customer_phone, amount, payment_method, status)
@@ -61,7 +61,7 @@ class OrderController {
                 customer_phone: customer_phone,
                 profile_name: profile.name,
                 profile_duration: profile.duration,
-                payment_method: payment_method // Tambahkan metode pembayaran
+                payment_method: payment_method
             };
 
             console.log('Creating payment transaction with data:', JSON.stringify(paymentData, null, 2));
@@ -70,7 +70,7 @@ class OrderController {
 
             res.json({
                 success: true,
-                message: 'Pesanan berhasil dibuat',
+                message: 'Pesanan berhasil dibuat. Silakan selesaikan pembayaran untuk mendapatkan voucher.',
                 data: {
                     order_id: orderId,
                     amount: profile.selling_price,
@@ -103,11 +103,15 @@ class OrderController {
         }
     }
 
-    // Complete order after payment
+    // Complete order manually (for admin use or fallback scenarios)
+    // NOTE: This method is now mainly for manual completion by admin
+    // Normal flow: voucher is created automatically in handlePaymentNotification
     static async completeOrder(req, res) {
         try {
             const { order_id } = req.params;
             const { payment_reference } = req.body;
+
+            console.log('🔧 Manual order completion requested for:', order_id);
 
             // Get order details
             const orderSql = `SELECT * FROM orders WHERE order_id = ?`;
@@ -144,7 +148,8 @@ class OrderController {
                 });
             }
 
-            // Create voucher
+            // Create voucher manually
+            console.log('🎫 Creating voucher manually for order:', order_id);
             const mikrotik = new MikrotikAPI();
             let voucherData = null;
 
@@ -164,8 +169,8 @@ class OrderController {
                     voucher_code_length: profile.voucher_code_length
                 });
 
-                // Create user in Mikrotik with profile from database
-                const comment = `Public Order: ${order.customerName} (${order.customerPhone}) | ${new Date().toLocaleString('id-ID', {
+                // Create user in Mikrotik
+                const comment = `Manual Order: ${order.customer_name} (${order.customer_phone}) | ${new Date().toLocaleString('id-ID', {
                     timeZone: 'Asia/Jakarta',
                     year: 'numeric',
                     month: '2-digit',
@@ -183,6 +188,7 @@ class OrderController {
                 );
 
                 await mikrotik.disconnect();
+                console.log('✅ Manual voucher created successfully');
 
             } catch (mikrotikError) {
                 console.error('Mikrotik error:', mikrotikError);
@@ -203,7 +209,7 @@ class OrderController {
             // Update order status
             const updateOrderSql = `UPDATE orders SET status = 'completed', payment_reference = ?, processed_at = CURRENT_TIMESTAMP WHERE order_id = ?`;
             await new Promise((resolve, reject) => {
-                database.getDb().run(updateOrderSql, [payment_reference || 'N/A', order_id], function(err) {
+                database.getDb().run(updateOrderSql, [payment_reference || 'MANUAL', order_id], function(err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -220,7 +226,7 @@ class OrderController {
                 amount: order.amount,
                 payment_method: order.payment_method,
                 status: 'completed',
-                notes: `Order ID: ${order_id}`
+                notes: `Manual Order ID: ${order_id}`
             });
 
             // Mark voucher as used (since it's been sold)
@@ -231,32 +237,11 @@ class OrderController {
                 const WhatsAppGateway = require('../services/WhatsAppGateway');
                 const wa = WhatsAppGateway.getInstance();
                 
-                // Check if WhatsApp is connected, if not try to initialize it
-                if (!wa.isConnected) {
-                    console.log('⚠️ WhatsApp gateway not connected, attempting to initialize...');
-                    try {
-                        await wa.initialize();
-                        console.log('🔄 WhatsApp gateway initialization attempted');
-                        
-                        // Wait a bit for connection to establish
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                    } catch (initError) {
-                        console.error('❌ Error initializing WhatsApp gateway:', initError);
-                    }
-                }
-                
-                console.log('WhatsApp gateway status:', {
-                    isConnected: wa.isConnected,
-                    connectionStatus: wa.connectionStatus,
-                    phoneNumber: wa.phoneNumber
-                });
-                
                 if (wa.isConnected) {
                     // Send notification to customer
                     let formattedPhone = order.customer_phone;
                     try {
                         if (formattedPhone && !formattedPhone.includes('@')) {
-                            // Remove any non-digit characters and ensure it starts with 62
                             formattedPhone = formattedPhone.replace(/\D/g, '');
                             if (!formattedPhone.startsWith('62')) {
                                 if (formattedPhone.startsWith('0')) {
@@ -265,17 +250,14 @@ class OrderController {
                                     formattedPhone = '62' + formattedPhone;
                                 }
                             }
-                            // Add WhatsApp suffix if needed
                             if (!formattedPhone.endsWith('@s.whatsapp.net')) {
                                 formattedPhone = formattedPhone + '@s.whatsapp.net';
                             }
                         }
                     } catch (formatError) {
                         console.error('Error formatting phone number:', formatError);
-                        formattedPhone = order.customer_phone; // fallback to original
+                        formattedPhone = order.customer_phone;
                     }
-                    
-                    console.log('Sending WhatsApp notification to customer:', formattedPhone);
                     
                     const customerMessage = 
                         `🎉 *PEMBELIAN VOUCHER BERHASIL!*\n\n` +
@@ -298,13 +280,6 @@ class OrderController {
                         console.log(`✅ WhatsApp notification sent successfully to customer ${formattedPhone}`);
                     } else {
                         console.log(`⚠️ Failed to send WhatsApp notification to customer ${formattedPhone}`);
-                        // Try with the original phone number as fallback
-                        const retryResult = await wa.sendReply(order.customer_phone, customerMessage);
-                        if (retryResult) {
-                            console.log(`✅ WhatsApp notification sent successfully with original phone number`);
-                        } else {
-                            console.log(`⚠️ Failed to send WhatsApp notification with original phone number`);
-                        }
                     }
 
                     // Send notification to admins
@@ -312,18 +287,14 @@ class OrderController {
                     
                 } else {
                     console.log('⚠️ WhatsApp gateway not connected, skipping notification');
-                    console.log('Please scan the QR code in the admin dashboard to connect WhatsApp');
-                    console.log('WhatsApp gateway detailed status:', wa.getStatus());
                 }
             } catch (waError) {
                 console.error('Error sending WhatsApp notification:', waError);
-                console.error('Error stack:', waError.stack);
-                // Don't fail the entire order if WhatsApp fails
             }
 
             res.json({
                 success: true,
-                message: 'Pesanan berhasil diselesaikan',
+                message: 'Pesanan berhasil diselesaikan secara manual',
                 data: {
                     order_id: order_id,
                     voucher: voucherData
@@ -331,7 +302,7 @@ class OrderController {
             });
 
         } catch (error) {
-            console.error('Error completing order:', error);
+            console.error('Error completing order manually:', error);
             res.status(500).json({
                 success: false,
                 message: 'Internal server error',
@@ -417,8 +388,10 @@ class OrderController {
                 verification.transaction_status === 'capture' || 
                 verification.transaction_status === 'SUCCESS') {
                 
-                // Payment successful, complete the order
+                // Payment successful, NOW CREATE VOUCHER
                 try {
+                    console.log('🎫 Payment successful! Creating voucher now...');
+                    
                     // Update order status
                     const updateOrderSql = `UPDATE orders SET status = 'completed', payment_reference = ?, processed_at = CURRENT_TIMESTAMP WHERE order_id = ?`;
                     await new Promise((resolve, reject) => {
@@ -437,7 +410,8 @@ class OrderController {
                         throw new Error('Profil voucher tidak ditemukan');
                     }
 
-                    // Create voucher
+                    // 🎫 CREATE VOUCHER ONLY AFTER SUCCESSFUL PAYMENT
+                    console.log('🎫 Creating voucher after successful payment...');
                     const mikrotik = new MikrotikAPI();
                     let voucherData = null;
 
@@ -457,8 +431,8 @@ class OrderController {
                             voucher_code_length: profile.voucher_code_length
                         });
 
-                        // Create user in Mikrotik with profile from database
-                        const comment = `Public Order: ${order.customerName} (${order.customerPhone}) | ${new Date().toLocaleString('id-ID', {
+                        // Create user in Mikrotik
+                        const comment = `Public Order: ${order.customer_name} (${order.customer_phone}) | ${new Date().toLocaleString('id-ID', {
                             timeZone: 'Asia/Jakarta',
                             year: 'numeric',
                             month: '2-digit',
@@ -476,6 +450,7 @@ class OrderController {
                         );
 
                         await mikrotik.disconnect();
+                        console.log('✅ Voucher created successfully in Mikrotik');
 
                     } catch (mikrotikError) {
                         console.error('Mikrotik error:', mikrotikError);
@@ -621,10 +596,12 @@ class OrderController {
                     });
                 }
             } else {
-                // Payment failed or pending
+                // Payment failed or pending - NO VOUCHER CREATED
+                console.log('❌ Payment failed or pending, no voucher created');
+                console.log('Payment status:', verification.transaction_status);
                 res.json({
                     success: true,
-                    message: 'Payment notification received'
+                    message: 'Payment notification received - payment not successful'
                 });
             }
 

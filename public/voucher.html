@@ -740,6 +740,9 @@
                 if (result.success) {
                     orderData = result.data;
                     
+                    // Show success message
+                    showAlert('Pesanan berhasil dibuat! Silakan selesaikan pembayaran untuk mendapatkan voucher.', 'success');
+                    
                     // Redirect to payment gateway
                     if (result.data.payment_url) {
                         window.location.href = result.data.payment_url;
