@@ -699,7 +699,7 @@ Proyek ini dilisensikan di bawah **Lisensi MIT** - lihat file [LICENSE](LICENSE)
 
 **Ali Jaya**
 - GitHub: [@alijayanet](https://github.com/alijayanet)
-- Website: [alijayanet.com](https://alijaya.net)
+- Website: [alijayanet](https://alijaya.net)
 
 ---
 
@@ -735,3 +735,4 @@ Proyek ini dilisensikan di bawah **Lisensi MIT** - lihat file [LICENSE](LICENSE)
 
 
 </div>
+
