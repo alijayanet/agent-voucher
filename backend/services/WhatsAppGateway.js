@@ -188,15 +188,20 @@ class WhatsAppGateway {
     // Handle incoming WhatsApp message
     async handleIncomingMessage(msg) {
         try {
+            // Extract phone number (without @s.whatsapp.net or @lid)
             const phoneNumber = msg.key.remoteJid.split('@')[0];
+
+            // Extract full WhatsApp LID (includes @s.whatsapp.net format or @lid)
+            const whatsappLid = msg.key.remoteJid;
+
             const messageText = msg.message?.conversation ||
                 msg.message?.extendedTextMessage?.text ||
                 msg.message?.imageMessage?.caption || '';
 
-            console.log(`📱 Received message from ${phoneNumber}: ${messageText}`);
+            console.log(`📱 Received message from ${phoneNumber} (LID: ${whatsappLid}): ${messageText}`);
 
-            // Process the message
-            await this.processMessage(phoneNumber, messageText);
+            // Process the message with both phoneNumber and whatsappLid
+            await this.processMessage(phoneNumber, messageText, whatsappLid);
 
         } catch (error) {
             console.error('❌ Error handling incoming message:', error);
@@ -220,9 +225,9 @@ class WhatsAppGateway {
     }
 
     // Process incoming WhatsApp message
-    async processMessage(phoneNumber, message) {
+    async processMessage(phoneNumber, message, whatsappLid = null) {
         try {
-            console.log(`📱 Processing message from ${phoneNumber}: ${message}`);
+            console.log(`📱 Processing message from ${phoneNumber}${whatsappLid ? ` (LID: ${whatsappLid})` : ''}: ${message}`);
 
             // Clean message (remove extra spaces, newlines)
             const cleanMessage = message.trim().replace(/\s+/g, ' ');
@@ -285,10 +290,16 @@ class WhatsAppGateway {
             }
 
             if (!agent) {
+                // Check if this is REG/AKTIFASI command untuk link LID ke agent yang sudah ada
+                if (lowerMessage.startsWith('reg ') || lowerMessage.startsWith('aktifasi ')) {
+                    console.log(`🔐 Agent activation request from ${phoneNumber} with LID: ${whatsappLid || 'not available'}`);
+                    return await this.handleAgentActivation(phoneNumber, cleanMessage, whatsappLid);
+                }
+
                 // Allow ONLY registration command for unregistered numbers; otherwise ignore silently
                 if (lowerMessage.startsWith('daftar_agent') || lowerMessage.startsWith('register_agent')) {
-                    console.log(`👤 Registration request from ${phoneNumber}`);
-                    return await this.handleAgentRegistration(phoneNumber, cleanMessage);
+                    console.log(`👤 Registration request from ${phoneNumber} with LID: ${whatsappLid || 'not available'}`);
+                    return await this.handleAgentRegistration(phoneNumber, cleanMessage, whatsappLid);
                 }
                 console.log(`🚫 Ignoring message from unregistered number (no reply): ${phoneNumber}`);
                 return; // Do not send any reply for unregistered numbers
@@ -443,9 +454,9 @@ class WhatsAppGateway {
     }
 
     // Handle agent registration via WhatsApp
-    async handleAgentRegistration(phoneNumber, message) {
+    async handleAgentRegistration(phoneNumber, message, whatsappLid = null) {
         try {
-            console.log(`👤 Processing agent registration from ${phoneNumber}: ${message}`);
+            console.log(`👤 Processing agent registration from ${phoneNumber}${whatsappLid ? ` (LID: ${whatsappLid})` : ''}: ${message}`);
 
             // Parse registration message
             // Format: daftar_agent [nama_lengkap]
@@ -484,19 +495,42 @@ class WhatsAppGateway {
                     `💡 Jika belum aktif, hubungi admin untuk aktivasi.`);
             }
 
-            // Create registration request in database
+            // Create registration request in database WITH whatsapp_lid
             const database = require('../config/database');
-            const sql = `INSERT INTO agent_registrations (phone_number, full_name, status, created_at)
-                        VALUES (?, ?, 'pending', datetime('now'))`;
+
+            // Check if whatsapp_lid column exists
+            const checkColumnSQL = `PRAGMA table_info(agent_registrations)`;
+            const columns = await new Promise((resolve, reject) => {
+                database.getDb().all(checkColumnSQL, [], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
+
+            const hasLidColumn = columns.some(col => col.name === 'whatsapp_lid');
+
+            if (!hasLidColumn) {
+                console.log('📝 Adding whatsapp_lid column...');
+                const alterSQL = `ALTER TABLE agent_registrations ADD COLUMN whatsapp_lid TEXT`;
+                await new Promise((resolve, reject) => {
+                    database.getDb().run(alterSQL, [], (err) => {
+                        if (err) reject(err);
+                        else { console.log('✅ whatsapp_lid column added'); resolve(); }
+                    });
+                });
+            }
+
+            const sql = `INSERT INTO agent_registrations (phone_number, full_name, whatsapp_lid, status, created_at)
+                        VALUES (?, ?, ?, 'pending', datetime('now'))`;
 
             return new Promise((resolve, reject) => {
-                database.getDb().run(sql, [normalizedPhone, fullName], function (err) {
+                database.getDb().run(sql, [normalizedPhone, fullName, whatsappLid], function (err) {
                     if (err) {
                         console.error('❌ Error saving agent registration:', err);
                         return reject(err);
                     }
 
-                    console.log(`✅ Agent registration saved for ${normalizedPhone} - ${fullName}`);
+                    console.log(`✅ Agent registration saved for ${normalizedPhone} - ${fullName} with LID: ${whatsappLid || 'N/A'}`);
 
                     // Send confirmation message
                     const replyMessage =
@@ -516,6 +550,172 @@ class WhatsAppGateway {
             console.error('❌ Error handling agent registration:', error);
             return this.sendReply(phoneNumber,
                 `❌ Terjadi kesalahan saat memproses pendaftaran!\n\n` +
+                `💡 Silakan coba lagi atau hubungi admin.`);
+        }
+    }
+
+    // Handle agent activation via WhatsApp (Link LID to existing agent)
+    async handleAgentActivation(phoneNumber, message, whatsappLid = null) {
+        try {
+            console.log(`🔐 Processing agent activation from ${phoneNumber}${whatsappLid ? ` (LID: ${whatsappLid})` : ''}: ${message}`);
+
+            if (!whatsappLid) {
+                return this.sendReply(phoneNumber,
+                    `❌ Tidak dapat mendeteksi WhatsApp ID Anda!\\n\\n` +
+                    `💡 Silakan coba lagi atau hubungi admin.`);
+            }
+
+            // Parse activation message
+            // Format: REG [nomor/nama] atau AKTIFASI [nomor/nama]
+            const parts = message.trim().split(/\\s+/);
+            if (parts.length < 2) {
+                return this.sendReply(phoneNumber,
+                    `❌ Format tidak valid!\\n\\n` +
+                    `📝 Format yang benar:\\n` +
+                    `*REG [nomor/nama]*\\n` +
+                    `*AKTIFASI [nomor/nama]*\\n\\n` +
+                    `💡 Contoh:\\n` +
+                    `• REG 628123456789\\n` +
+                    `• REG Ahmad\\n` +
+                    `• AKTIFASI 628123456789\\n` +
+                    `• AKTIFASI Ahmad Setiawan`);
+            }
+
+            // Remove command from parts
+            parts.shift();
+            const searchTerm = parts.join(' ');
+
+            if (!searchTerm || searchTerm.trim().length < 2) {
+                return this.sendReply(phoneNumber,
+                    `❌ Nomor atau nama harus diisi!\\n\\n` +
+                    `💡 Contoh: *REG Ahmad* atau *REG 628123456789*`);
+            }
+
+            // Normalize phone number if it's a phone number
+            let normalizedSearch = searchTerm.replace(/^\\+/, '');
+            if (!normalizedSearch.startsWith('62') && /^\\d+$/.test(normalizedSearch)) {
+                normalizedSearch = '62' + normalizedSearch;
+            }
+
+            // Search agent by phone or name in users table
+            const database = require('../config/database');
+
+            // Try to find by phone first, then by name
+            let agent = null;
+
+            // Search by phone
+            if (/^\\d+$/.test(normalizedSearch)) {
+                const phoneSQL = `SELECT * FROM users WHERE phone = ? AND role = 'agent'`;
+                agent = await new Promise((resolve, reject) => {
+                    database.getDb().get(phoneSQL, [normalizedSearch], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+                });
+            }
+
+            // If not found by phone, search by name (partial match)
+            if (!agent) {
+                const nameSQL = `SELECT * FROM users WHERE LOWER(full_name) LIKE LOWER(?) AND role = 'agent'`;
+                const agents = await new Promise((resolve, reject) => {
+                    database.getDb().all(nameSQL, [`%${searchTerm}%`], (err, rows) => {
+                        if (err) reject(err);
+                        else resolve(rows);
+                    });
+                });
+
+                if (agents && agents.length === 1) {
+                    agent = agents[0];
+                } else if (agents && agents.length > 1) {
+                    // Multiple matches found
+                    const agentList = agents.map(a => `• ${a.full_name} (${a.phone})`).join('\\n');
+                    return this.sendReply(phoneNumber,
+                        `⚠️ *Ditemukan ${agents.length} agent dengan nama serupa:*\\n\\n` +
+                        `${agentList}\\n\\n` +
+                        `💡 Silakan gunakan nomor telepon yang spesifik:\\n` +
+                        `Contoh: *REG 628123456789*`);
+                }
+            }
+
+            if (!agent) {
+                return this.sendReply(phoneNumber,
+                    `❌ Agent dengan nomor/nama "${searchTerm}" tidak ditemukan!\\n\\n` +
+                    `💡 Pastikan Anda sudah terdaftar oleh admin.\\n` +
+                    `📞 Hubungi admin untuk registrasi.`);
+            }
+
+            // Check if agent already has whatsapp_lid
+            if (agent.whatsapp_lid) {
+                return this.sendReply(phoneNumber,
+                    `⚠️ *Agent Sudah Teraktifasi!*\\n\\n` +
+                    `👤 Nama: ${agent.full_name}\\n` +
+                    `📱 Nomor: ${agent.phone}\\n` +
+                    `💰 Saldo: Rp ${(agent.balance || 0).toLocaleString('id-ID')}\\n\\n` +
+                    `✅ Akun Anda sudah aktif dan siap digunakan!\\n\\n` +
+                    `💡 Ketik *help* untuk melihat menu.`);
+            }
+
+            // Check if whatsapp_lid column exists in users table
+            const checkColumnSQL = `PRAGMA table_info(users)`;
+            const columns = await new Promise((resolve, reject) => {
+                database.getDb().all(checkColumnSQL, [], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
+
+            const hasLidColumn = columns.some(col => col.name === 'whatsapp_lid');
+
+            if (!hasLidColumn) {
+                console.log('📝 Adding whatsapp_lid column to users table...');
+                const alterSQL = `ALTER TABLE users ADD COLUMN whatsapp_lid TEXT`;
+                await new Promise((resolve, reject) => {
+                    database.getDb().run(alterSQL, [], (err) => {
+                        if (err) reject(err);
+                        else {
+                            console.log('✅ whatsapp_lid column added to users table');
+                            resolve();
+                        }
+                    });
+                });
+            }
+
+            // Update agent dengan whatsapp_lid
+            const updateSQL = `UPDATE users SET whatsapp_lid = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND role = 'agent'`;
+
+            return new Promise((resolve, reject) => {
+                database.getDb().run(updateSQL, [whatsappLid, agent.id], function (err) {
+                    if (err) {
+                        console.error('❌ Error updating agent whatsapp_lid:', err);
+                        return reject(err);
+                    }
+
+                    if (this.changes > 0) {
+                        console.log(`✅ Agent LID updated: ${agent.full_name} (${agent.phone}) -> LID: ${whatsappLid}`);
+
+                        // Send success message
+                        const replyMessage =
+                            `🎉 *AKTIVASI BERHASIL!*\\n\\n` +
+                            `✅ WhatsApp Anda telah terhubung dengan akun agent:\\n\\n` +
+                            `👤 Nama: ${agent.full_name}\\n` +
+                            `📱 Nomor: ${agent.phone}\\n` +
+                            `💰 Saldo: Rp ${(agent.balance || 0).toLocaleString('id-ID')}\\n` +
+                            `📊 Status: ${agent.is_active ? 'Aktif' : 'Tidak Aktif'}\\n\\n` +
+                            `🎯 Akun Anda sekarang siap digunakan!\\n\\n` +
+                            `💡 Ketik *help* untuk melihat menu dan cara penggunaan.`;
+
+                        resolve(this.sendReply(phoneNumber, replyMessage));
+                    } else {
+                        console.error('❌ No rows updated for agent activation');
+                        reject(new Error('No rows updated'));
+                    }
+                });
+            });
+
+        } catch (error) {
+            console.error('❌ Error handling agent activation:', error);
+            return this.sendReply(phoneNumber,
+                `❌ Terjadi kesalahan saat memproses aktivasi!\\n\\n` +
                 `💡 Silakan coba lagi atau hubungi admin.`);
         }
     }
