@@ -1,0 +1,166 @@
+
+    // Handle agent activation via WhatsApp (Link LID to existing agent)
+    async handleAgentActivation(phoneNumber, message, whatsappLid = null) {
+        try {
+            console.log(`🔐 Processing agent activation from ${phoneNumber}${whatsappLid ? ` (LID: ${whatsappLid})` : ''}: ${message}`);
+
+            if (!whatsappLid) {
+                return this.sendReply(phoneNumber,
+                    `❌ Tidak dapat mendeteksi WhatsApp ID Anda!\\n\\n` +
+                    `💡 Silakan coba lagi atau hubungi admin.`);
+            }
+
+            // Parse activation message
+            // Format: REG [nomor/nama] atau AKTIFASI [nomor/nama]
+            const parts = message.trim().split(/\\s+/);
+            if (parts.length < 2) {
+                return this.sendReply(phoneNumber,
+                    `❌ Format tidak valid!\\n\\n` +
+                    `📝 Format yang benar:\\n` +
+                    `*REG [nomor/nama]*\\n` +
+                    `*AKTIFASI [nomor/nama]*\\n\\n` +
+                    `💡 Contoh:\\n` +
+                    `• REG 628123456789\\n` +
+                    `• REG Ahmad\\n` +
+                    `• AKTIFASI 628123456789\\n` +
+                    `• AKTIFASI Ahmad Setiawan`);
+            }
+
+            // Remove command from parts
+            parts.shift();
+            const searchTerm = parts.join(' ');
+
+            if (!searchTerm || searchTerm.trim().length < 2) {
+                return this.sendReply(phoneNumber,
+                    `❌ Nomor atau nama harus diisi!\\n\\n` +
+                    `💡 Contoh: *REG Ahmad* atau *REG 628123456789*`);
+            }
+
+            // Normalize phone number if it's a phone number
+            let normalizedSearch = searchTerm.replace(/^\\+/, '');
+            if (!normalizedSearch.startsWith('62') && /^\\d+$/.test(normalizedSearch)) {
+                normalizedSearch = '62' + normalizedSearch;
+            }
+
+            // Search agent by phone or name in users table
+            const database = require('../config/database');
+            
+            // Try to find by phone first, then by name
+            let agent = null;
+            
+            // Search by phone
+            if (/^\\d+$/.test(normalizedSearch)) {
+                const phoneSQL = `SELECT * FROM users WHERE phone = ? AND role = 'agent'`;
+                agent = await new Promise((resolve, reject) => {
+                    database.getDb().get(phoneSQL, [normalizedSearch], (err, row) => {
+                        if (err) reject(err);
+                        else resolve(row);
+                    });
+                });
+            }
+            
+            // If not found by phone, search by name (partial match)
+            if (!agent) {
+                const nameSQL = `SELECT * FROM users WHERE LOWER(full_name) LIKE LOWER(?) AND role = 'agent'`;
+                const agents = await new Promise((resolve, reject) => {
+                    database.getDb().all(nameSQL, [`%${searchTerm}%`], (err, rows) => {
+                        if (err) reject(err);
+                        else resolve(rows);
+                    });
+                });
+                
+                if (agents && agents.length === 1) {
+                    agent = agents[0];
+                } else if (agents && agents.length > 1) {
+                    // Multiple matches found
+                    const agentList = agents.map(a => `• ${a.full_name} (${a.phone})`).join('\\n');
+                    return this.sendReply(phoneNumber,
+                        `⚠️ *Ditemukan ${agents.length} agent dengan nama serupa:*\\n\\n` +
+                        `${agentList}\\n\\n` +
+                        `💡 Silakan gunakan nomor telepon yang spesifik:\\n` +
+                        `Contoh: *REG 628123456789*`);
+                }
+            }
+
+            if (!agent) {
+                return this.sendReply(phoneNumber,
+                    `❌ Agent dengan nomor/nama "${searchTerm}" tidak ditemukan!\\n\\n` +
+                    `💡 Pastikan Anda sudah terdaftar oleh admin.\\n` +
+                    `📞 Hubungi admin untuk registrasi.`);
+            }
+
+            // Check if agent already has whatsapp_lid
+            if (agent.whatsapp_lid) {
+                return this.sendReply(phoneNumber,
+                    `⚠️ *Agent Sudah Teraktifasi!*\\n\\n` +
+                    `👤 Nama: ${agent.full_name}\\n` +
+                    `📱 Nomor: ${agent.phone}\\n` +
+                    `💰 Saldo: Rp ${(agent.balance || 0).toLocaleString('id-ID')}\\n\\n` +
+                    `✅ Akun Anda sudah aktif dan siap digunakan!\\n\\n` +
+                    `💡 Ketik *help* untuk melihat menu.`);
+            }
+
+            // Check if whatsapp_lid column exists in users table
+            const checkColumnSQL = `PRAGMA table_info(users)`;
+            const columns = await new Promise((resolve, reject) => {
+                database.getDb().all(checkColumnSQL, [], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
+            
+            const hasLidColumn = columns.some(col => col.name === 'whatsapp_lid');
+            
+            if (!hasLidColumn) {
+                console.log('📝 Adding whatsapp_lid column to users table...');
+                const alterSQL = `ALTER TABLE users ADD COLUMN whatsapp_lid TEXT`;
+                await new Promise((resolve, reject) => {
+                    database.getDb().run(alterSQL, [], (err) => {
+                        if (err) reject(err);
+                        else {
+                            console.log('✅ whatsapp_lid column added to users table');
+                            resolve();
+                        }
+                    });
+                });
+            }
+
+            // Update agent dengan whatsapp_lid
+            const updateSQL = `UPDATE users SET whatsapp_lid = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND role = 'agent'`;
+            
+            return new Promise((resolve, reject) => {
+                database.getDb().run(updateSQL, [whatsappLid, agent.id], function(err) {
+                    if (err) {
+                        console.error('❌ Error updating agent whatsapp_lid:', err);
+                        return reject(err);
+                    }
+
+                    if (this.changes > 0) {
+                        console.log(`✅ Agent LID updated: ${agent.full_name} (${agent.phone}) -> LID: ${whatsappLid}`);
+                        
+                        // Send success message
+                        const replyMessage =
+                            `🎉 *AKTIVASI BERHASIL!*\\n\\n` +
+                            `✅ WhatsApp Anda telah terhubung dengan akun agent:\\n\\n` +
+                            `👤 Nama: ${agent.full_name}\\n` +
+                            `📱 Nomor: ${agent.phone}\\n` +
+                            `💰 Saldo: Rp ${(agent.balance || 0).toLocaleString('id-ID')}\\n` +
+                            `📊 Status: ${agent.is_active ? 'Aktif' : 'Tidak Aktif'}\\n\\n` +
+                            `🎯 Akun Anda sekarang siap digunakan!\\n\\n` +
+                            `💡 Ketik *help* untuk melihat menu dan cara penggunaan.`;
+                        
+                        resolve(this.sendReply(phoneNumber, replyMessage));
+                    } else {
+                        console.error('❌ No rows updated for agent activation');
+                        reject(new Error('No rows updated'));
+                    }
+                });
+            });
+
+        } catch (error) {
+            console.error('❌ Error handling agent activation:', error);
+            return this.sendReply(phoneNumber,
+                `❌ Terjadi kesalahan saat memproses aktivasi!\\n\\n` +
+                `💡 Silakan coba lagi atau hubungi admin.`);
+        }
+    }
