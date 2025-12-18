@@ -24,7 +24,7 @@ class WhatsAppGateway {
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.sentMessages = new Set(); // Track messages sent by bot to prevent self-response
-        
+
         // Ensure session directory exists
         if (!fs.existsSync(this.sessionPath)) {
             fs.mkdirSync(this.sessionPath, { recursive: true });
@@ -44,32 +44,37 @@ class WhatsAppGateway {
         try {
             console.log('🔄 Initializing WhatsApp Gateway with Baileys...');
             console.log('📁 Session path:', this.sessionPath);
-            
+
             const { state, saveCreds } = await useMultiFileAuthState(this.sessionPath);
             console.log('✅ Auth state loaded');
-            
+
             this.sock = makeWASocket({
                 auth: state,
                 logger: require('pino')({ level: 'silent' }),
-                browser: ['Mikrotik Voucher WiFi', 'Chrome', '1.0.0']
+                browser: ['Mikrotik Voucher WiFi', 'Chrome', '1.0.0'],
+                // getMessage handler - REQUIRED untuk Baileys v7.0.0+
+                getMessage: async (key) => {
+                    // Return empty message - will be handled by store if available
+                    return { conversation: '' }
+                }
             });
             console.log('✅ Socket created');
 
             // Handle connection updates
             this.sock.ev.on('connection.update', async (update) => {
                 const { connection, lastDisconnect, qr } = update;
-                
+
                 console.log('🔄 Connection update received:', {
                     connection: connection,
                     hasQR: !!qr,
                     qrLength: qr ? qr.length : 0
                 });
-                
+
                 if (qr) {
                     this.qrCode = qr;
                     console.log('📱 Scan QR Code ini di WhatsApp Anda:');
                     console.log('🔗 QR Code string length:', qr.length);
-                    
+
                     // Generate QR code data URL untuk dashboard
                     try {
                         const qrcodeLib = require('qrcode');
@@ -80,7 +85,7 @@ class WhatsAppGateway {
                     } catch (error) {
                         console.error('❌ Error generating QR code data URL:', error);
                         console.error('❌ QR Code data:', typeof qr, qr ? qr.length : 'null');
-                        
+
                         // Fallback: create simple text representation
                         try {
                             this.qrCodeDataUrl = `data:text/plain;base64,${Buffer.from('QR Code Available - Check Terminal').toString('base64')}`;
@@ -90,21 +95,21 @@ class WhatsAppGateway {
                             this.qrCodeDataUrl = null;
                         }
                     }
-                    
+
                     // Store QR code text as backup for dashboard
                     this.qrCodeText = qr;
                     console.log('📝 QR Code text stored for dashboard display');
-                    
+
                     this.connectionStatus = 'qr_ready';
                     console.log('✅ Connection status updated to qr_ready');
                 }
-                
+
                 // Handle other connection states
                 if (connection === 'close') {
                     console.log('❌ WhatsApp connection closed');
                     this.isConnected = false;
                     this.connectionStatus = 'disconnected';
-                    
+
                     // Define in outer scope to avoid ReferenceError
                     let shouldReconnect = true;
                     try {
@@ -115,7 +120,7 @@ class WhatsAppGateway {
                         console.log('❌ Connection closed, will attempt reconnection');
                         shouldReconnect = true; // Default to reconnect on unknown errors
                     }
-                    
+
                     if (shouldReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
                         this.connectionStatus = 'reconnecting';
                         this.reconnectAttempts++;
@@ -148,7 +153,7 @@ class WhatsAppGateway {
                     this.qrCodeText = null;
                     console.log('📱 Phone number:', this.phoneNumber);
                     console.log('🔄 Status updated - isConnected:', this.isConnected, 'connectionStatus:', this.connectionStatus);
-                    
+
                     // Start listening for messages
                     this.startMessageListener();
                 }
@@ -157,7 +162,7 @@ class WhatsAppGateway {
             // Handle incoming messages
             this.sock.ev.on('messages.upsert', async (m) => {
                 const msg = m.messages[0];
-                
+
                 // Enhanced filtering to prevent bot from responding to own messages
                 if (!msg.key.fromMe && msg.message) {
                     console.log(`📨 Message received from: ${msg.key.remoteJid}, fromMe: ${msg.key.fromMe}`);
@@ -171,7 +176,7 @@ class WhatsAppGateway {
             this.sock.ev.on('creds.update', saveCreds);
 
             console.log('✅ WhatsApp Gateway initialized with Baileys');
-            
+
         } catch (error) {
             console.error('❌ Failed to initialize WhatsApp Gateway:', error);
             this.isConnected = false;
@@ -184,15 +189,15 @@ class WhatsAppGateway {
     async handleIncomingMessage(msg) {
         try {
             const phoneNumber = msg.key.remoteJid.split('@')[0];
-            const messageText = msg.message?.conversation || 
-                              msg.message?.extendedTextMessage?.text || 
-                              msg.message?.imageMessage?.caption || '';
+            const messageText = msg.message?.conversation ||
+                msg.message?.extendedTextMessage?.text ||
+                msg.message?.imageMessage?.caption || '';
 
             console.log(`📱 Received message from ${phoneNumber}: ${messageText}`);
-            
+
             // Process the message
             await this.processMessage(phoneNumber, messageText);
-            
+
         } catch (error) {
             console.error('❌ Error handling incoming message:', error);
         }
@@ -201,7 +206,7 @@ class WhatsAppGateway {
     // Start listening for incoming messages
     startMessageListener() {
         console.log('👂 Starting WhatsApp message listener...');
-        
+
         // Message listener is now handled by Baileys events
         // No need for manual polling
     }
@@ -209,7 +214,7 @@ class WhatsAppGateway {
     // Check for new messages (simulated)
     async checkForNewMessages() {
         if (!this.isConnected) return;
-        
+
         // This method is no longer needed with Baileys
         // Messages are handled automatically via events
     }
@@ -221,7 +226,7 @@ class WhatsAppGateway {
 
             // Clean message (remove extra spaces, newlines)
             const cleanMessage = message.trim().replace(/\s+/g, ' ');
-            
+
             // Skip processing if message looks like a system notification
             // These are usually sent by the bot itself and should not be processed as commands
             const systemNotificationPatterns = [
@@ -239,14 +244,14 @@ class WhatsAppGateway {
                 /^👤.*Username:/i, // Add pattern for username line
                 /^🔑.*Password:/i // Add pattern for password line
             ];
-            
+
             for (const pattern of systemNotificationPatterns) {
                 if (pattern.test(cleanMessage)) {
                     console.log(`🚫 Skipping system notification: ${cleanMessage.substring(0, 50)}...`);
                     return; // Don't process system notifications as commands
                 }
             }
-            
+
             // Check if this message was recently sent by the bot itself
             const messageHash = `${phoneNumber}:${cleanMessage.substring(0, 100)}`;
             if (this.sentMessages.has(messageHash)) {
@@ -260,7 +265,7 @@ class WhatsAppGateway {
 
             // Check if sender is a dedicated admin phone
             const dedicatedAdmin = await this.isDedicatedAdminPhone(phoneNumber);
-            
+
             // Check if sender is admin phone from config.env
             const isConfigAdmin = this.isAdminPhone(phoneNumber);
 
@@ -272,7 +277,7 @@ class WhatsAppGateway {
                 console.log(`👑 Dedicated admin command from ${phoneNumber} (${dedicatedAdmin.admin_name})`);
                 return await this.handleDedicatedAdminCommands(phoneNumber, dedicatedAdmin, cleanMessage);
             }
-            
+
             // Handle config admin phone commands
             if (isConfigAdmin && !agent) {
                 console.log(`👑 Config admin command from ${phoneNumber}`);
@@ -344,7 +349,7 @@ class WhatsAppGateway {
                         /cara menggunakan/i,
                         /berlaku sampai/i
                     ];
-                    
+
                     let isLikelyVoucherNotification = false;
                     for (const pattern of voucherNotificationPatterns) {
                         if (pattern.test(cleanMessage)) {
@@ -352,12 +357,12 @@ class WhatsAppGateway {
                             break;
                         }
                     }
-                    
+
                     if (isLikelyVoucherNotification) {
                         console.log(`🚫 Skipping likely voucher notification response to ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
                         return; // Don't send any reply for voucher notifications
                     }
-                    
+
                     // Check for other common auto-responses or non-command messages
                     const autoResponsePatterns = [
                         /ok/i,
@@ -381,7 +386,7 @@ class WhatsAppGateway {
                         /😀/,
                         /🙏/
                     ];
-                    
+
                     let isAutoResponse = false;
                     for (const pattern of autoResponsePatterns) {
                         if (pattern.test(cleanMessage)) {
@@ -389,12 +394,12 @@ class WhatsAppGateway {
                             break;
                         }
                     }
-                    
+
                     if (isAutoResponse) {
                         console.log(`🚫 Ignoring auto-response message from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
                         return; // Don't send any reply for auto-responses
                     }
-                    
+
                     // For any other unrecognized messages, ignore silently
                     console.log(`🚫 Ignoring unrecognized message from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
                     return; // Don't send any reply for unrecognized messages
@@ -403,13 +408,13 @@ class WhatsAppGateway {
 
             // Check OTP if required
             const otpSettings = await this.getOTPSettings();
-            
+
             if (otpSettings.enabled) {
                 if (order.requiresOTP) {
                     // Validate OTP
                     const otpResult = await this.validateOTP(phoneNumber, order.otp);
                     if (!otpResult.success) {
-                        return this.sendReply(phoneNumber, 
+                        return this.sendReply(phoneNumber,
                             `🔐 *OTP Tidak Valid!*\n\n` +
                             `❌ ${otpResult.message}\n\n` +
                             `💡 Minta OTP baru: ketik "otp"\n` +
@@ -418,7 +423,7 @@ class WhatsAppGateway {
                     console.log(`✅ OTP validated for ${phoneNumber}: ${order.otp}`);
                 } else {
                     // OTP enabled but not provided in order
-                    return this.sendReply(phoneNumber, 
+                    return this.sendReply(phoneNumber,
                         `🔐 *OTP Diperlukan!*\n\n` +
                         `⚠️ Sistem OTP sedang aktif, gunakan format:\n` +
                         `📝 otp [kode] beli [profile] [jumlah]\n\n` +
@@ -485,7 +490,7 @@ class WhatsAppGateway {
                         VALUES (?, ?, 'pending', datetime('now'))`;
 
             return new Promise((resolve, reject) => {
-                database.getDb().run(sql, [normalizedPhone, fullName], function(err) {
+                database.getDb().run(sql, [normalizedPhone, fullName], function (err) {
                     if (err) {
                         console.error('❌ Error saving agent registration:', err);
                         return reject(err);
@@ -576,42 +581,42 @@ class WhatsAppGateway {
     async handleConfigAdminCommands(phoneNumber, message) {
         try {
             console.log(`👑 Config admin command from ${phoneNumber}: ${message}`);
-            
+
             const cleanMessage = message.trim();
             const lowerMessage = cleanMessage.toLowerCase();
-            
+
             if (lowerMessage === 'help' || lowerMessage === 'bantuan') {
                 return this.sendReply(phoneNumber, this.getConfigAdminHelp());
-                
+
             } else if (lowerMessage.startsWith('voucher') || lowerMessage.startsWith('beli')) {
                 const parts = cleanMessage.split(/\s+/);
                 if (parts.length < 3) {
-                    return this.sendReply(phoneNumber, 
+                    return this.sendReply(phoneNumber,
                         `❌ Format: voucher [profile] [jumlah] [customer] [phone]\n` +
                         `💡 Contoh: voucher 5k 2 Customer 081234567890`);
                 }
-                
+
                 const profile = parts[1];
                 const quantity = parseInt(parts[2]);
                 const customerName = parts[3] || 'Admin Customer';
                 const customerPhone = parts[4] || '';
-                
+
                 return await this.adminCreateVoucher(phoneNumber, profile, quantity, customerName, customerPhone);
-                
+
             } else {
                 // Check if this might be an auto-response or non-command message
                 const isAutoResponse = this.isAutoResponseMessage(cleanMessage);
-                
+
                 if (isAutoResponse) {
                     console.log(`🚫 Ignoring auto-response message from config admin ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
                     return; // Don't send any reply for auto-responses
                 }
-                
+
                 // For any other unrecognized admin commands, ignore silently
                 console.log(`🚫 Ignoring unrecognized config admin command from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
                 return; // Don't send any reply for unrecognized admin commands
             }
-            
+
         } catch (error) {
             console.error('❌ Error handling config admin command:', error);
             return this.sendReply(phoneNumber, '❌ Terjadi kesalahan saat memproses perintah admin.');
@@ -621,17 +626,17 @@ class WhatsAppGateway {
     // Get help message for config admin
     getConfigAdminHelp() {
         return `👑 *ADMIN COMMANDS (Config Admin)*\n\n` +
-               `🎫 *Perintah Voucher:*\n` +
-               `• voucher [profile] [jumlah] [customer] [phone] - Buat voucher\n` +
-               `• beli [profile] [jumlah] [customer] [phone] - Buat voucher\n\n` +
-               `💡 Contoh:\n` +
-               `• voucher 5k 2 Customer 081234567890\n` +
-               `• beli 3k 1 Ahmad 081234567890\n\n` +
-               `📋 *Catatan:*\n` +
-               `• Voucher dibuat GRATIS (tanpa potong saldo)\n` +
-               `• Langsung aktif di Mikrotik\n` +
-               `• Dikirim ke customer jika ada nomor\n\n` +
-               `📱 Kirim "help" untuk menu ini`;
+            `🎫 *Perintah Voucher:*\n` +
+            `• voucher [profile] [jumlah] [customer] [phone] - Buat voucher\n` +
+            `• beli [profile] [jumlah] [customer] [phone] - Buat voucher\n\n` +
+            `💡 Contoh:\n` +
+            `• voucher 5k 2 Customer 081234567890\n` +
+            `• beli 3k 1 Ahmad 081234567890\n\n` +
+            `📋 *Catatan:*\n` +
+            `• Voucher dibuat GRATIS (tanpa potong saldo)\n` +
+            `• Langsung aktif di Mikrotik\n` +
+            `• Dikirim ke customer jika ada nomor\n\n` +
+            `📱 Kirim "help" untuk menu ini`;
     }
 
     // Handle dedicated admin phone commands (simple commands)
@@ -711,7 +716,7 @@ class WhatsAppGateway {
                     /😀/,
                     /🙏/
                 ];
-                
+
                 let isAutoResponse = false;
                 for (const pattern of autoResponsePatterns) {
                     if (pattern.test(cleanMessage)) {
@@ -719,12 +724,12 @@ class WhatsAppGateway {
                         break;
                     }
                 }
-                
+
                 if (isAutoResponse) {
                     console.log(`🚫 Ignoring auto-response message from admin ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
                     return; // Don't send any reply for auto-responses
                 }
-                
+
                 // For any other unrecognized admin commands, ignore silently
                 console.log(`🚫 Ignoring unrecognized admin command from ${phoneNumber}: ${cleanMessage.substring(0, 50)}...`);
                 return; // Don't send any reply for unrecognized admin commands
@@ -739,43 +744,43 @@ class WhatsAppGateway {
     // Get help message for dedicated admin
     getDedicatedAdminHelp() {
         return `👑 *ADMIN COMMANDS - SIMPLE MODE*\n\n` +
-               `📝 *Perintah Daftar Agent:*\n` +
-               `• daftar [nama_agent] [nomor_wa]\n` +
-               `  Contoh: daftar Ahmad 628123456789\n\n` +
-               `💰 *Perintah Deposit:*\n` +
-               `• deposit [nama_agent] [jumlah]\n` +
-               `  Contoh: deposit Ahmad 50000\n\n` +
-               `✅ *Perintah Terima Request:*\n` +
-               `• terima [request_id]\n` +
-               `  Contoh: terima 123\n\n` +
-               `❌ *Perintah Tolak Request:*\n` +
-               `• tolak [request_id] [alasan]\n` +
-               `  Contoh: tolak 123 Data tidak lengkap\n\n` +
-               `🗑️ *Perintah Hapus Agent:*\n` +
-               `• hapus [nama_agent]\n` +
-               `  Contoh: hapus Ahmad\n\n` +
-               `✏️ *Perintah Edit Agent:*\n` +
-               `• edit [nama_agent]\n` +
-               `  Contoh: edit Ahmad\n\n` +
-               `📊 *Perintah Laporan:*\n` +
-               `• laporan [nama_agent]\n` +
-               `  Contoh: laporan Ahmad\n\n` +
-               `📈 *Perintah Status:*\n` +
-               `• status [nama_agent]\n` +
-               `  Contoh: status Ahmad\n\n` +
-               `🎫 *Perintah Voucher:*\n` +
-               `• voucher [profile] [jumlah] [customer] [phone]\n` +
-               `  Contoh: voucher paket1jam 5 Customer 081234567890\n` +
-               `• beli [profile] [jumlah] [customer] [phone]\n` +
-               `  Contoh: beli paket1hari 3 Ahmad 081234567890\n\n` +
-               `📋 *Perintah Lain:*\n` +
-               `• list - Daftar semua agent\n` +
-               `• pending - Pendaftaran pending\n` +
-               `• help - Menu ini\n\n` +
-               `💡 *Catatan:*\n` +
-               `• Gunakan nama lengkap agent\n` +
-               `• Nomor WA tanpa + dan spasi\n` +
-               `• Deposit dalam rupiah`;
+            `📝 *Perintah Daftar Agent:*\n` +
+            `• daftar [nama_agent] [nomor_wa]\n` +
+            `  Contoh: daftar Ahmad 628123456789\n\n` +
+            `💰 *Perintah Deposit:*\n` +
+            `• deposit [nama_agent] [jumlah]\n` +
+            `  Contoh: deposit Ahmad 50000\n\n` +
+            `✅ *Perintah Terima Request:*\n` +
+            `• terima [request_id]\n` +
+            `  Contoh: terima 123\n\n` +
+            `❌ *Perintah Tolak Request:*\n` +
+            `• tolak [request_id] [alasan]\n` +
+            `  Contoh: tolak 123 Data tidak lengkap\n\n` +
+            `🗑️ *Perintah Hapus Agent:*\n` +
+            `• hapus [nama_agent]\n` +
+            `  Contoh: hapus Ahmad\n\n` +
+            `✏️ *Perintah Edit Agent:*\n` +
+            `• edit [nama_agent]\n` +
+            `  Contoh: edit Ahmad\n\n` +
+            `📊 *Perintah Laporan:*\n` +
+            `• laporan [nama_agent]\n` +
+            `  Contoh: laporan Ahmad\n\n` +
+            `📈 *Perintah Status:*\n` +
+            `• status [nama_agent]\n` +
+            `  Contoh: status Ahmad\n\n` +
+            `🎫 *Perintah Voucher:*\n` +
+            `• voucher [profile] [jumlah] [customer] [phone]\n` +
+            `  Contoh: voucher paket1jam 5 Customer 081234567890\n` +
+            `• beli [profile] [jumlah] [customer] [phone]\n` +
+            `  Contoh: beli paket1hari 3 Ahmad 081234567890\n\n` +
+            `📋 *Perintah Lain:*\n` +
+            `• list - Daftar semua agent\n` +
+            `• pending - Pendaftaran pending\n` +
+            `• help - Menu ini\n\n` +
+            `💡 *Catatan:*\n` +
+            `• Gunakan nama lengkap agent\n` +
+            `• Nomor WA tanpa + dan spasi\n` +
+            `• Deposit dalam rupiah`;
     }
 
     // ===== DEDICATED ADMIN COMMAND HANDLERS =====
@@ -1389,7 +1394,7 @@ class WhatsAppGateway {
                     /😀/,
                     /🙏/
                 ];
-                
+
                 let isAutoResponse = false;
                 for (const pattern of autoResponsePatterns) {
                     if (pattern.test(message)) {
@@ -1397,12 +1402,12 @@ class WhatsAppGateway {
                         break;
                     }
                 }
-                
+
                 if (isAutoResponse) {
                     console.log(`🚫 Ignoring auto-response message from admin ${phoneNumber}: ${message.substring(0, 50)}...`);
                     return; // Don't send any reply for auto-responses
                 }
-                
+
                 // For any other unrecognized admin commands, ignore silently
                 console.log(`🚫 Ignoring unrecognized admin command from ${phoneNumber}: ${message.substring(0, 50)}...`);
                 return; // Don't send any reply for unrecognized admin commands
@@ -1637,16 +1642,16 @@ class WhatsAppGateway {
             try {
                 const MikrotikAPI = require('../config/mikrotik');
                 const mikrotik = new MikrotikAPI();
-                
+
                 console.log('🔄 Connecting to Mikrotik for admin voucher creation...');
                 await mikrotik.connect();
-                
+
                 for (const voucher of vouchers) {
                     try {
                         // Check if this is config admin or dedicated admin
                         const isConfigAdmin = this.isAdminPhone(phoneNumber);
                         const commentPrefix = isConfigAdmin ? 'Config Admin' : 'Admin';
-                        
+
                         const comment = `${commentPrefix}: ${phoneNumber} | ${new Date().toLocaleString('id-ID', {
                             timeZone: 'Asia/Jakarta',
                             year: 'numeric',
@@ -1655,7 +1660,7 @@ class WhatsAppGateway {
                             hour: '2-digit',
                             minute: '2-digit'
                         })}`;
-                        
+
                         await mikrotik.createHotspotUser(
                             voucher.username,
                             voucher.password,
@@ -1669,7 +1674,7 @@ class WhatsAppGateway {
                         // Continue with other vouchers even if one fails
                     }
                 }
-                
+
                 await mikrotik.disconnect();
                 console.log('✅ Mikrotik connection closed');
             } catch (mikrotikError) {
@@ -1695,23 +1700,23 @@ class WhatsAppGateway {
             const voucherCodes = vouchers.map(v => v.username).join('\n');
             const formattedDuration = this.formatDuration(profile.duration);
             const reply = `✅ *VOUCHER ADMIN BERHASIL DIBUAT!*\n\n` +
-                         `📦 Profile: ${profile.name}\n` +
-                         `🔢 Jumlah: ${quantity}\n` +
-                         `👤 Customer: ${customerName}\n` +
-                         `📱 Nomor: ${customerPhone || 'Tidak ada'}\n\n` +
-                         `🔐 *Kode Voucher:*\n${voucherCodes}\n\n` +
-                         `💰 Harga: GRATIS (Admin)\n` +
-                         `📅 Durasi: ${formattedDuration}\n\n` +
-                         `⏰ Dibuat: ${new Date().toLocaleString('id-ID', {
-                             timeZone: 'Asia/Jakarta',
-                             year: 'numeric',
-                             month: '2-digit',
-                             day: '2-digit',
-                             hour: '2-digit',
-                             minute: '2-digit',
-                             second: '2-digit'
-                         })}\n\n` +
-                         `${customerPhone ? '📱 Voucher sudah dikirim ke customer' : '⚠️ Nomor customer tidak ada, voucher tidak dikirim'}`;
+                `📦 Profile: ${profile.name}\n` +
+                `🔢 Jumlah: ${quantity}\n` +
+                `👤 Customer: ${customerName}\n` +
+                `📱 Nomor: ${customerPhone || 'Tidak ada'}\n\n` +
+                `🔐 *Kode Voucher:*\n${voucherCodes}\n\n` +
+                `💰 Harga: GRATIS (Admin)\n` +
+                `📅 Durasi: ${formattedDuration}\n\n` +
+                `⏰ Dibuat: ${new Date().toLocaleString('id-ID', {
+                    timeZone: 'Asia/Jakarta',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                })}\n\n` +
+                `${customerPhone ? '📱 Voucher sudah dikirim ke customer' : '⚠️ Nomor customer tidak ada, voucher tidak dikirim'}`;
 
             return this.sendReply(phoneNumber, reply);
 
@@ -1781,7 +1786,7 @@ class WhatsAppGateway {
 
             // Query database for agent with this phone number
             const sql = `SELECT * FROM users WHERE phone = ? AND role = 'agent' AND is_active = 1`;
-            
+
             return new Promise((resolve, reject) => {
                 const database = require('../config/database');
                 database.getDb().get(sql, [normalizedPhone], (err, row) => {
@@ -1803,7 +1808,7 @@ class WhatsAppGateway {
         try {
             // Get OTP settings
             const settings = await this.getOTPSettings();
-            
+
             if (!settings.enabled) {
                 return { success: false, message: 'OTP tidak diaktifkan' };
             }
@@ -1811,7 +1816,7 @@ class WhatsAppGateway {
             // Generate random OTP
             const otpLength = settings.length || 6;
             const otp = Math.random().toString().slice(2, 2 + otpLength);
-            
+
             // Calculate expiry time
             const expirySeconds = settings.expiry || 600;
             const expiresAt = new Date(Date.now() + (expirySeconds * 1000));
@@ -1823,14 +1828,14 @@ class WhatsAppGateway {
             `;
 
             await new Promise((resolve, reject) => {
-                database.getDb().run(sql, [agentPhone, otp, expiresAt.toISOString()], function(err) {
+                database.getDb().run(sql, [agentPhone, otp, expiresAt.toISOString()], function (err) {
                     if (err) reject(err);
                     else resolve();
                 });
             });
 
             // Send OTP to agent
-            const otpMessage = 
+            const otpMessage =
                 `🔐 *KODE OTP ANDA*\n\n` +
                 `🔢 Kode: *${otp}*\n` +
                 `⏰ Berlaku: ${Math.round(expirySeconds / 60)} menit\n\n` +
@@ -1840,9 +1845,9 @@ class WhatsAppGateway {
                 `⚠️ *Penting:* Jangan bagikan kode ini!`;
 
             await this.sendReply(agentPhone, otpMessage);
-            
-            return { 
-                success: true, 
+
+            return {
+                success: true,
                 otp: otp,
                 expiresAt: expiresAt,
                 message: 'OTP berhasil dikirim'
@@ -1877,9 +1882,9 @@ class WhatsAppGateway {
                     SET used = 1, used_at = datetime('now') 
                     WHERE id = ?
                 `;
-                
+
                 await new Promise((resolve, reject) => {
-                    database.getDb().run(updateSql, [otpRecord.id], function(err) {
+                    database.getDb().run(updateSql, [otpRecord.id], function (err) {
                         if (err) reject(err);
                         else resolve();
                     });
@@ -1900,7 +1905,7 @@ class WhatsAppGateway {
     async getOTPSettings() {
         try {
             const sql = `SELECT * FROM otp_settings WHERE id = 1`;
-            
+
             const settings = await new Promise((resolve, reject) => {
                 database.getDb().get(sql, [], (err, row) => {
                     if (err) reject(err);
@@ -1958,7 +1963,7 @@ class WhatsAppGateway {
             if (match) {
                 // Check if this is OTP format
                 const isOTPFormat = trimmedMessage.startsWith('otp ');
-                
+
                 if (isOTPFormat) {
                     // OTP format patterns
                     if (match.length === 5 && match[4] && match[4].startsWith('628')) {
@@ -2000,39 +2005,39 @@ class WhatsAppGateway {
                     }
                 } else {
                     // Regular format patterns (non-OTP)
-                if (match.length === 4 && match[3] && match[3].startsWith('628')) {
-                    // Format dengan nomor: beli [profile] [quantity] [phone]
-                    return {
-                        profile: match[1],
-                        quantity: parseInt(match[2]),
+                    if (match.length === 4 && match[3] && match[3].startsWith('628')) {
+                        // Format dengan nomor: beli [profile] [quantity] [phone]
+                        return {
+                            profile: match[1],
+                            quantity: parseInt(match[2]),
                             customerName: `Customer ${match[3]}`,
-                        customerPhone: match[3],
+                            customerPhone: match[3],
                             sendToCustomer: true,
                             isValid: true,
                             requiresOTP: false
-                    };
-                } else if (match.length === 3) {
-                    // Format tanpa nomor: beli [profile] [quantity]
-                    return {
-                        profile: match[1],
-                        quantity: parseInt(match[2]),
+                        };
+                    } else if (match.length === 3) {
+                        // Format tanpa nomor: beli [profile] [quantity]
+                        return {
+                            profile: match[1],
+                            quantity: parseInt(match[2]),
                             customerName: `Customer ${Date.now()}`,
                             customerPhone: null,
                             sendToCustomer: false,
                             isValid: true,
                             requiresOTP: false
-                    };
-                } else if (match.length === 5) {
-                    // Old format: beli [profile] [quantity] [name] [phone]
-                    return {
-                        profile: match[1],
-                        quantity: parseInt(match[2]),
-                        customerName: match[3].trim(),
-                        customerPhone: match[4],
+                        };
+                    } else if (match.length === 5) {
+                        // Old format: beli [profile] [quantity] [name] [phone]
+                        return {
+                            profile: match[1],
+                            quantity: parseInt(match[2]),
+                            customerName: match[3].trim(),
+                            customerPhone: match[4],
                             sendToCustomer: true,
                             isValid: true,
                             requiresOTP: false
-                    };
+                        };
                     }
                 }
             }
@@ -2072,10 +2077,10 @@ class WhatsAppGateway {
             try {
                 const MikrotikAPI = require('../config/mikrotik');
                 const mikrotik = new MikrotikAPI();
-                
+
                 console.log('🔄 Connecting to Mikrotik for agent voucher creation...');
                 await mikrotik.connect();
-                
+
                 for (const voucher of vouchers) {
                     try {
                         const comment = `Agent: ${agent.full_name} (${agent.phone}) | ${new Date().toLocaleString('id-ID', {
@@ -2086,7 +2091,7 @@ class WhatsAppGateway {
                             hour: '2-digit',
                             minute: '2-digit'
                         })}`;
-                        
+
                         await mikrotik.createHotspotUser(
                             voucher.username,
                             voucher.password,
@@ -2100,7 +2105,7 @@ class WhatsAppGateway {
                         // Continue with other vouchers even if one fails
                     }
                 }
-                
+
                 await mikrotik.disconnect();
                 console.log('✅ Mikrotik connection closed');
             } catch (mikrotikError) {
@@ -2119,26 +2124,26 @@ class WhatsAppGateway {
             const voucherCodes = vouchers.map(v => v.username).join('\n');
 
             let reply = `✅ Order berhasil diproses!\n\n` +
-                       `📦 Profile: ${profile.name}\n` +
-                       `🔢 Jumlah: ${order.quantity}\n` +
-                       `👤 Customer: ${order.customerName}\n`;
+                `📦 Profile: ${profile.name}\n` +
+                `🔢 Jumlah: ${order.quantity}\n` +
+                `👤 Customer: ${order.customerName}\n`;
 
             if (order.sendToCustomer) {
                 reply += `📱 Phone: ${order.customerPhone}\n` +
-                        `💰 Total: Rp ${actualCost.toLocaleString('id-ID')}\n` +
-                        `💳 Saldo tersisa: Rp ${finalBalance.toLocaleString('id-ID')}\n\n`;
+                    `💰 Total: Rp ${actualCost.toLocaleString('id-ID')}\n` +
+                    `💳 Saldo tersisa: Rp ${finalBalance.toLocaleString('id-ID')}\n\n`;
 
                 // Send voucher to customer
                 const customerReply = `🔑 *Voucher Internet Anda*\n\n` +
-                                    `👤 Nama: ${order.customerName}\n` +
-                                    `📦 Paket: ${profile.name}\n` +
-                                    `⏰ Durasi: ${profile.duration}\n` +
-                                    `🔑 Kode Voucher: ${voucherCodes}\n\n` +
-                                    `📋 Cara menggunakan:\n` +
-                                    `1. Connect ke WiFi hotspot\n` +
-                                    `2. Login dengan kode voucher di atas sebagai username dan password\n` +
-                                    `3. Nikmati internet! 🚀\n\n` +
-                                    `_Voucher dari: ${agent.full_name}_`;
+                    `👤 Nama: ${order.customerName}\n` +
+                    `📦 Paket: ${profile.name}\n` +
+                    `⏰ Durasi: ${profile.duration}\n` +
+                    `🔑 Kode Voucher: ${voucherCodes}\n\n` +
+                    `📋 Cara menggunakan:\n` +
+                    `1. Connect ke WiFi hotspot\n` +
+                    `2. Login dengan kode voucher di atas sebagai username dan password\n` +
+                    `3. Nikmati internet! 🚀\n\n` +
+                    `_Voucher dari: ${agent.full_name}_`;
 
                 try {
                     await this.sendReply(order.customerPhone, customerReply);
@@ -2149,9 +2154,9 @@ class WhatsAppGateway {
                 }
             } else {
                 reply += `📱 Phone: - (Tidak ada nomor customer)\n` +
-                        `💰 Total: Rp ${actualCost.toLocaleString('id-ID')}\n` +
-                        `💳 Saldo tersisa: Rp ${finalBalance.toLocaleString('id-ID')}\n\n` +
-                        `ℹ️ Voucher TIDAK dikirim ke customer (tidak ada nomor)\n\n`;
+                    `💰 Total: Rp ${actualCost.toLocaleString('id-ID')}\n` +
+                    `💳 Saldo tersisa: Rp ${finalBalance.toLocaleString('id-ID')}\n\n` +
+                    `ℹ️ Voucher TIDAK dikirim ke customer (tidak ada nomor)\n\n`;
             }
 
             reply += `🔑 Kode Voucher:\n${voucherCodes}`;
@@ -2200,14 +2205,14 @@ class WhatsAppGateway {
     async createVouchers(profile, quantity, agentId) {
         try {
             const vouchers = [];
-            
+
             for (let i = 0; i < quantity; i++) {
                 const voucher = await this.createSingleVoucher(profile, agentId);
                 if (voucher) {
                     vouchers.push(voucher);
                 }
             }
-            
+
             return vouchers;
         } catch (error) {
             console.error('❌ Error creating vouchers:', error);
@@ -2227,9 +2232,9 @@ class WhatsAppGateway {
     // Format duration for display
     formatDuration(duration) {
         if (!duration) return 'Tidak ditentukan';
-        
+
         const durationStr = duration.toString().toLowerCase();
-        
+
         if (durationStr.includes('h')) {
             const hours = parseInt(durationStr.replace('h', ''));
             return `${hours} jam`;
@@ -2262,13 +2267,13 @@ class WhatsAppGateway {
         });
 
         return `🎫 *VOUCHER WIFI BERHASIL DIBUAT!*\n\n` +
-               `👤 Customer: ${customerName}\n` +
-               `📦 Profile: ${profile.name}\n` +
-               `📅 Durasi: ${formattedDuration}\n` +
-               `💰 Harga: GRATIS (${createdBy})\n\n` +
-               `🔐 *Kode Voucher:*\n${voucherCodes}\n\n` +
-               `⏰ Dibuat: ${currentTime}\n\n` +
-               `📱 Gunakan kode di atas untuk login WiFi hotspot!`;
+            `👤 Customer: ${customerName}\n` +
+            `📦 Profile: ${profile.name}\n` +
+            `📅 Durasi: ${formattedDuration}\n` +
+            `💰 Harga: GRATIS (${createdBy})\n\n` +
+            `🔐 *Kode Voucher:*\n${voucherCodes}\n\n` +
+            `⏰ Dibuat: ${currentTime}\n\n` +
+            `📱 Gunakan kode di atas untuk login WiFi hotspot!`;
     }
 
     // Create single voucher
@@ -2285,7 +2290,7 @@ class WhatsAppGateway {
 
             return new Promise((resolve, reject) => {
                 const database = require('../config/database');
-                database.getDb().run(sql, [username, password, profile.name, profile.agent_price, profile.duration], function(err) {
+                database.getDb().run(sql, [username, password, profile.name, profile.agent_price, profile.duration], function (err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -2310,10 +2315,10 @@ class WhatsAppGateway {
     async deductAgentBalance(agentId, amount) {
         try {
             const sql = `UPDATE users SET balance = balance - ? WHERE id = ? AND role = 'agent'`;
-            
+
             return new Promise((resolve, reject) => {
                 const database = require('../config/database');
-                database.getDb().run(sql, [amount, agentId], function(err) {
+                database.getDb().run(sql, [amount, agentId], function (err) {
                     if (err) {
                         reject(err);
                     } else {
@@ -2339,7 +2344,7 @@ class WhatsAppGateway {
                       VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
 
             return new Promise((resolve, reject) => {
-                db.run(sql, [customerName, customerPhone, amount, 'whatsapp', 'completed', agentId], function(err) {
+                db.run(sql, [customerName, customerPhone, amount, 'whatsapp', 'completed', agentId], function (err) {
                     if (err) {
                         // If created_by column doesn't exist, try without it
                         if (err.message.includes('no column named created_by')) {
@@ -2347,7 +2352,7 @@ class WhatsAppGateway {
                             const fallbackSql = `INSERT INTO transactions (customer_name, customer_phone, amount, payment_method, status, created_at)
                                                VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`;
 
-                            db.run(fallbackSql, [customerName, customerPhone, amount, 'whatsapp', 'completed'], function(fallbackErr) {
+                            db.run(fallbackSql, [customerName, customerPhone, amount, 'whatsapp', 'completed'], function (fallbackErr) {
                                 if (fallbackErr) {
                                     reject(fallbackErr);
                                 } else {
@@ -2375,14 +2380,14 @@ class WhatsAppGateway {
             if (!this.sock || !this.isConnected) {
                 console.error('❌ WhatsApp not connected - Cannot send message to:', phoneNumber);
                 console.log('🔄 Attempting to reconnect WhatsApp gateway...');
-                
+
                 try {
                     // Try to reinitialize the connection
                     await this.initialize();
-                    
+
                     // Wait a bit for connection to establish
                     await new Promise(resolve => setTimeout(resolve, 3000));
-                    
+
                     if (!this.isConnected) {
                         console.error('❌ WhatsApp still not connected after reinitialization attempt');
                         return false;
@@ -2393,13 +2398,13 @@ class WhatsAppGateway {
                 }
             }
 
-            const jid = phoneNumber.includes('@s.whatsapp.net') ? 
-                       phoneNumber : `${phoneNumber}@s.whatsapp.net`;
+            const jid = phoneNumber.includes('@s.whatsapp.net') ?
+                phoneNumber : `${phoneNumber}@s.whatsapp.net`;
 
             // Track this message to prevent self-response
             const messageHash = `${phoneNumber}:${message.substring(0, 100)}`;
             this.sentMessages.add(messageHash);
-            
+
             // Clean up old tracked messages (keep only last 100)
             if (this.sentMessages.size > 100) {
                 const messages = Array.from(this.sentMessages);
@@ -2408,15 +2413,15 @@ class WhatsAppGateway {
             }
 
             await this.sock.sendMessage(jid, { text: message });
-            
+
             console.log(`📤 WhatsApp Reply sent to ${phoneNumber}: ${message.substring(0, 50)}...`);
             console.log(`🔍 Message tracked: ${messageHash}`);
             return true;
-            
+
         } catch (error) {
             console.error('❌ Error sending WhatsApp reply to', phoneNumber, ':', error.message);
             console.error('Error stack:', error.stack);
-            
+
             // Try to send with simplified phone number format
             if (phoneNumber.includes('@s.whatsapp.net')) {
                 const simplifiedPhone = phoneNumber.replace('@s.whatsapp.net', '');
@@ -2431,7 +2436,7 @@ class WhatsAppGateway {
                     console.error('❌ Retry failed for', simplifiedPhone, ':', retryError.message);
                 }
             }
-            
+
             return false;
         }
     }
@@ -2439,50 +2444,50 @@ class WhatsAppGateway {
     // Get help message
     getHelpMessage(agent) {
         let message = `📱 *WhatsApp Voucher Order*\n\n` +
-               `🎯 Format pesan:\n` +
-               `• Dengan nomor customer:\n` +
-               `  beli [harga] [jumlah] [nomor_customer]\n\n` +
-               `• Tanpa nomor customer:\n` +
-               `  beli [harga] [jumlah]\n\n` +
-               `📝 Contoh:\n` +
-               `✅ beli 3000 1 628123456789 (dengan nomor)\n` +
-               `✅ beli 3000 1 (tanpa nomor)\n` +
-               `✅ beli 5000 2 628987654321 (dengan nomor)\n\n` +
-               `📋 Paket yang tersedia:\n` +
-               `- 3000: 1 jam internet (3Mbps)\n` +
-               `- 5000: 3 jam internet (3Mbps)\n` +
-               `- 10000: 1 hari internet (5Mbps)\n` +
-               `- 25000: 1 minggu internet (10Mbps)\n\n` +
-               `💰 Sistem Pembayaran:\n` +
-               `• Selalu BAYAR (potong saldo agent untuk pembuatan voucher)\n` +
-               `• Dengan nomor: Voucher dikirim ke customer\n` +
-               `• Tanpa nomor: Voucher hanya untuk agent\n\n` +
-               `✅ Keuntungan:\n` +
-               `• Voucher 4 digit angka\n` +
-               `• Username = Password\n` +
-               `• Kirim otomatis ke customer\n` +
-               `• Format fleksibel\n\n` +
-               `📋 Perintah Lain:\n` +
-               `• status / saldo: Cek saldo dan informasi agent\n` +
-               `• laporan / report: Lihat laporan transaksi\n` +
-               `• help / bantuan: Tampilkan menu ini`;
+            `🎯 Format pesan:\n` +
+            `• Dengan nomor customer:\n` +
+            `  beli [harga] [jumlah] [nomor_customer]\n\n` +
+            `• Tanpa nomor customer:\n` +
+            `  beli [harga] [jumlah]\n\n` +
+            `📝 Contoh:\n` +
+            `✅ beli 3000 1 628123456789 (dengan nomor)\n` +
+            `✅ beli 3000 1 (tanpa nomor)\n` +
+            `✅ beli 5000 2 628987654321 (dengan nomor)\n\n` +
+            `📋 Paket yang tersedia:\n` +
+            `- 3000: 1 jam internet (3Mbps)\n` +
+            `- 5000: 3 jam internet (3Mbps)\n` +
+            `- 10000: 1 hari internet (5Mbps)\n` +
+            `- 25000: 1 minggu internet (10Mbps)\n\n` +
+            `💰 Sistem Pembayaran:\n` +
+            `• Selalu BAYAR (potong saldo agent untuk pembuatan voucher)\n` +
+            `• Dengan nomor: Voucher dikirim ke customer\n` +
+            `• Tanpa nomor: Voucher hanya untuk agent\n\n` +
+            `✅ Keuntungan:\n` +
+            `• Voucher 4 digit angka\n` +
+            `• Username = Password\n` +
+            `• Kirim otomatis ke customer\n` +
+            `• Format fleksibel\n\n` +
+            `📋 Perintah Lain:\n` +
+            `• status / saldo: Cek saldo dan informasi agent\n` +
+            `• laporan / report: Lihat laporan transaksi\n` +
+            `• help / bantuan: Tampilkan menu ini`;
 
         // Add admin commands if user is admin
         if (this.isAdmin(agent)) {
             message += `\n\n👑 *ADMIN COMMANDS:*\n` +
-                       `• admin_help: Lihat perintah admin lengkap\n` +
-                       `• admin_lihat_agent: Lihat semua agent\n` +
-                       `• admin_registrasi: Lihat pendaftaran pending\n` +
-                       `• admin_setujui [id]: Setujui pendaftaran\n` +
-                       `• admin_tolak [id]: Tolak pendaftaran\n` +
-                       `• admin_hapus [id]: Hapus agent\n` +
-                       `• admin_topup [id] [jumlah]: Top up saldo agent\n` +
-                       `• admin_laporan: Laporan sistem lengkap`;
+                `• admin_help: Lihat perintah admin lengkap\n` +
+                `• admin_lihat_agent: Lihat semua agent\n` +
+                `• admin_registrasi: Lihat pendaftaran pending\n` +
+                `• admin_setujui [id]: Setujui pendaftaran\n` +
+                `• admin_tolak [id]: Tolak pendaftaran\n` +
+                `• admin_hapus [id]: Hapus agent\n` +
+                `• admin_topup [id] [jumlah]: Top up saldo agent\n` +
+                `• admin_laporan: Laporan sistem lengkap`;
         }
 
         message += `\n\n💡 Tips:\n` +
-                   `- Format nomor: 628xxxxxxxxxx\n` +
-                   `- Saldo SELALU dipotong untuk pembuatan voucher`;
+            `- Format nomor: 628xxxxxxxxxx\n` +
+            `- Saldo SELALU dipotong untuk pembuatan voucher`;
 
         return message;
     }
@@ -2662,12 +2667,12 @@ _Sistem Voucher WiFi_`;
     // Disconnect WhatsApp
     disconnect() {
         console.log('🔄 Disconnecting WhatsApp Gateway...');
-        
+
         if (this.sock) {
             this.sock.end();
             this.sock = null;
         }
-        
+
         this.isConnected = false;
         this.connectionStatus = 'disconnected';
         this.orders.clear();
@@ -2675,7 +2680,7 @@ _Sistem Voucher WiFi_`;
         this.qrCodeDataUrl = null;
         this.qrCodeText = null;
         this.reconnectAttempts = 0;
-        
+
         console.log('✅ WhatsApp Gateway disconnected');
     }
 
@@ -2718,7 +2723,7 @@ _Sistem Voucher WiFi_`;
 
             // Approve the request
             const UserModel = require('../models/User');
-            
+
             // Update request status
             const updateSql = `
                 UPDATE deposit_requests 
@@ -2727,7 +2732,7 @@ _Sistem Voucher WiFi_`;
             `;
 
             await new Promise((resolve, reject) => {
-                database.getDb().run(updateSql, [request.amount, requestId], function(err) {
+                database.getDb().run(updateSql, [request.amount, requestId], function (err) {
                     if (err) reject(err);
                     else resolve();
                 });
@@ -2739,7 +2744,7 @@ _Sistem Voucher WiFi_`;
 
             // Notify agent
             if (request.phone) {
-                const agentMessage = 
+                const agentMessage =
                     `🎉 *DEPOSIT APPROVED!*\n\n` +
                     `👤 Agent: ${request.full_name}\n` +
                     `💵 Jumlah: Rp ${request.amount.toLocaleString('id-ID')}\n` +
@@ -2822,7 +2827,7 @@ _Sistem Voucher WiFi_`;
             `;
 
             await new Promise((resolve, reject) => {
-                database.getDb().run(updateSql, [reason, requestId], function(err) {
+                database.getDb().run(updateSql, [reason, requestId], function (err) {
                     if (err) reject(err);
                     else resolve();
                 });
@@ -2830,7 +2835,7 @@ _Sistem Voucher WiFi_`;
 
             // Notify agent
             if (request.phone) {
-                const agentMessage = 
+                const agentMessage =
                     `❌ *DEPOSIT REQUEST DITOLAK*\n\n` +
                     `👤 Agent: ${request.full_name}\n` +
                     `💵 Jumlah: Rp ${request.amount.toLocaleString('id-ID')}\n` +
